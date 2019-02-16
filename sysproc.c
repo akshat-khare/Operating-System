@@ -110,3 +110,14 @@ sys_print_count(void){
   printcounthelper();
   return 0;
 }
+int sys_add(void){
+  int a;
+  int b;
+  argint(0, &a);
+  argint(1, &b);
+  // cprintf("a is %d\n",a);
+  // cprintf("b is %d\n",b);
+  int temp = a+b;
+  // cprintf("%d\n",temp);
+  return temp;
+}

@@ -185,6 +185,7 @@ UPROGS=\
 	_print_count\
 	_clear\
 	_shutdown\
+	_user_add\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -253,6 +254,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	clear.c\
+	user_add\
 	shutdown.c\
 	user_toggle.c print_count.c\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\

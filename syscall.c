@@ -108,6 +108,7 @@ extern int sys_uptime(void);
 extern int sys_halt(void);
 extern int sys_toggle(void);
 extern int sys_print_count(void);
+extern int sys_add(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -134,6 +135,7 @@ static int (*syscalls[])(void) = {
 [SYS_halt]   sys_halt,
 [SYS_toggle]  sys_toggle,
 [SYS_print_count] sys_print_count,
+[SYS_add]     sys_add,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -161,6 +163,7 @@ const char *syscallstr[NELEM(syscalls)]= {
  "sys_halt",
   "sys_toggle",
  "sys_print_count",
+  "sys_add",
 };
 
 
