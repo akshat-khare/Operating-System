@@ -103,6 +103,9 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_halt(void);
+extern int sys_toggle(void);
+extern int sys_print_count(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,8 +129,67 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_halt]   sys_halt,
+[SYS_toggle]  sys_toggle,
+[SYS_print_count] sys_print_count,
 };
 
+const char *syscallstr[NELEM(syscalls)]= {
+  "sys_fork",
+  "sys_exit",
+  "sys_wait",
+  "sys_pipe",
+  "sys_read",
+  "sys_kill",
+  "sys_exec",
+  "sys_fstat",
+  "sys_chdir",
+  "sys_dup",
+  "sys_getpid",
+  "sys_sbrk",
+  "sys_sleep",
+  "sys_uptime",
+  "sys_open",
+  "sys_write",
+  "sys_mknod",
+  "sys_unlink",
+  "sys_link",
+  "sys_mkdir",
+  "sys_close",
+ "sys_halt",
+  "sys_toggle",
+ "sys_print_count",
+};
+
+
+static int* syscallctr[NELEM(syscalls)];
+static int togglestate=0;
+void specialhandler(int num){
+    //trace part
+    if(togglestate==1){
+      syscallctr[num] = syscallctr[num]+1;
+    }
+    //trace part ends
+    if(num==SYS_toggle){
+      togglestate= 1-togglestate;
+      if(togglestate==0){
+        for(int i=0;i<NELEM(syscalls);i++){
+          int tempctr = (int)syscallctr[i];
+          if(tempctr!=0){
+            syscallctr[i]=0;
+          }
+        }
+      }
+    }
+    if(num==SYS_print_count && togglestate==1){
+      // CHECK WHY WE NEED TO DO NELEM - 1-----------------------------------------------------------
+      for(int i=0;i<NELEM(syscalls)-1;i++){
+        int tempctr = (int)syscallctr[i];
+        cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
+        // }
+      }
+    }
+}
 void
 syscall(void)
 {
@@ -136,6 +198,7 @@ syscall(void)
 
   num = curproc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    specialhandler(num); 
     curproc->tf->eax = syscalls[num]();
   } else {
     cprintf("%d %s: unknown sys call %d\n",

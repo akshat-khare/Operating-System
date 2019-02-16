@@ -89,3 +89,21 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+// int hii=0;
+int
+sys_halt(void)
+{
+  outb(0xf4, 0x00);
+  // hii = hii +1;
+  // cprintf("%d\n",hii);
+  // cprintf("%d", syscallctr)
+  return 0;
+}
+int 
+sys_toggle(void){
+  return 0;
+}
+int
+sys_print_count(void){
+  return 0;
+}
