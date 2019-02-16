@@ -186,6 +186,7 @@ UPROGS=\
 	_clear\
 	_shutdown\
 	_user_add\
+	_printrunningprocess\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -256,6 +257,7 @@ EXTRA=\
 	clear.c\
 	user_add\
 	shutdown.c\
+	printrunningprocess\
 	user_toggle.c print_count.c\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\

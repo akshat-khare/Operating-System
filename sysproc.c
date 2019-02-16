@@ -121,3 +121,7 @@ int sys_add(void){
   // cprintf("%d\n",temp);
   return temp;
 }
+int sys_ps(void){
+  printrunningprocess();
+  return 0;
+}
