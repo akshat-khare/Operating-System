@@ -13,6 +13,8 @@
 // library system call function. The saved user %esp points
 // to a saved program counter, and then the first argument.
 
+int togglestate=0;
+
 // Fetch the int at addr from the current process.
 int
 fetchint(uint addr, int *ip)
@@ -163,33 +165,28 @@ const char *syscallstr[NELEM(syscalls)]= {
 
 
 static int* syscallctr[NELEM(syscalls)];
-static int togglestate=0;
-void specialhandler(int num){
-    //trace part
-    if(togglestate==1){
-      syscallctr[num] = syscallctr[num]+1;
-    }
-    //trace part ends
-    if(num==SYS_toggle){
-      togglestate= 1-togglestate;
-      if(togglestate==0){
-        for(int i=0;i<NELEM(syscalls);i++){
-          int tempctr = (int)syscallctr[i];
-          if(tempctr!=0){
-            syscallctr[i]=0;
-          }
-        }
+
+void reinitializeprinthelper(){
+  if(togglestate==0){
+    for(int i=0;i<NELEM(syscalls);i++){
+      int tempctr = (int)syscallctr[i];
+      if(tempctr!=0){
+        syscallctr[i]=0;
       }
     }
-    if(num==SYS_print_count && togglestate==1){
-      // CHECK WHY WE NEED TO DO NELEM - 1-----------------------------------------------------------
-      for(int i=0;i<NELEM(syscalls)-1;i++){
-        int tempctr = (int)syscallctr[i];
-        cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
-        // }
-      }
-    }
+  }
 }
+void printcounthelper(){
+  if(togglestate==1){
+
+    for(int i=0;i<NELEM(syscalls)-1;i++){
+      int tempctr = (int)syscallctr[i];
+      cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
+      // }
+    }
+  }
+}
+// togglestate=0;
 void
 syscall(void)
 {
@@ -198,7 +195,10 @@ syscall(void)
 
   num = curproc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    specialhandler(num); 
+    // specialhandler(num); 
+    if(togglestate==1){
+      syscallctr[num] = syscallctr[num]+1;
+    }
     curproc->tf->eax = syscalls[num]();
   } else {
     cprintf("%d %s: unknown sys call %d\n",

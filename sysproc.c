@@ -101,9 +101,12 @@ sys_halt(void)
 }
 int 
 sys_toggle(void){
+  togglestate=1-togglestate;
+  reinitializeprinthelper();
   return 0;
 }
 int
 sys_print_count(void){
+  printcounthelper();
   return 0;
 }

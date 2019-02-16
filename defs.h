@@ -154,6 +154,8 @@ int             argptr(int, char**, int);
 int             argstr(int, char**);
 int             fetchint(uint, int*);
 int             fetchstr(uint, char**);
+void            printcounthelper();
+void            reinitializeprinthelper();
 void            syscall(void);
 
 // timer.c
