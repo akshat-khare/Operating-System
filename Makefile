@@ -187,6 +187,8 @@ UPROGS=\
 	_shutdown\
 	_user_add\
 	_printrunningprocess\
+	_sendmessage\
+	_recvmessage\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -255,6 +257,8 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	clear.c\
+	sendmessage.c\
+	recvmessage.c\
 	user_add\
 	shutdown.c\
 	printrunningprocess\

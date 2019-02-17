@@ -593,6 +593,17 @@ void freeMessageBuffer(int msg_no){
   free_message_buffer=msg_no;
 }
 void pushmessage(int quenum, MessageBuffer* bfrptr){
+  // cprintf("message in push message is \n");
+  // for(int i=1;i<MESSAGESIZE;i++){
+  //   cprintf("%d",(*bfrptr)[i]);
+  // }
+  // cprintf("\n");
+  // cprintf("it actually means\n");
+  // for(int i=1;i<MESSAGESIZE;i++){
+  //   char temp =(char) ((*bfrptr)[i]+'0');
+  //   cprintf("%s",&temp);
+  // }
+  // cprintf("\n");
   message_queue[quenum][message_queue_tail[quenum]]=bfrptr;
   message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
 }

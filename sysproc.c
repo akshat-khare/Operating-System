@@ -125,3 +125,45 @@ int sys_ps(void){
   printrunningprocess();
   return 0;
 }
+int sys_sendmessage(void){
+  int a;
+  char * b;
+  argint(0,&a);
+  argstr(1,&b);
+  cprintf("a is %d\n",a);
+  cprintf("b is %s\n",b);
+  int tempmsgbfr = getMessageBuffer();
+  // int * tempintptr = (int *) b;
+  // cprintf("temp is %d\n",tempintptr[0]);
+  // cprintf("len 1 is %d len 2 is %d\n", NELEM(b), NELEM(tempintptr));
+  for(int i=1;i<MESSAGESIZE;i++){
+    int temp = (int) (b[i-1]);
+    message_buffer[tempmsgbfr][i]=temp;
+  }
+  // cprintf("message in send message is \n");
+  // for(int i=1;i<MESSAGESIZE;i++){
+  //   cprintf("%d",(message_buffer[tempmsgbfr][i]));
+  // }
+  // cprintf("\n");
+  // cprintf("it actually means\n");
+  // for(int i=1;i<MESSAGESIZE;i++){
+  //   char temp =(char) message_buffer[tempmsgbfr][i]+'0';
+  //   cprintf("%s",&temp);
+  // }
+  // cprintf("\n");
+  pushmessage(a,&(message_buffer[tempmsgbfr]));
+  return 0;
+}
+int sys_recvmessage(void){
+  int a;
+  char* b;
+  argint(0,&a);
+  argptr(1,&b, 2);
+  MessageBuffer * temp = popmessage(a);
+  for(int i=1;i<MESSAGESIZE;i++){
+    b[i-1]=(char) ((*temp)[i]);
+  }
+  // b[0]='a';
+  // cprintf("recv part %s\n",b);
+  return 0;
+}

@@ -110,6 +110,8 @@ extern int sys_toggle(void);
 extern int sys_print_count(void);
 extern int sys_add(void);
 extern int sys_ps(void);
+extern int sys_sendmessage(void);
+extern int sys_recvmessage(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -138,6 +140,8 @@ static int (*syscalls[])(void) = {
 [SYS_print_count] sys_print_count,
 [SYS_add]     sys_add,
 [SYS_ps]      sys_ps,
+[SYS_sendmessage] sys_sendmessage,
+[SYS_recvmessage] sys_recvmessage,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -167,6 +171,8 @@ const char *syscallstr[NELEM(syscalls)]= {
  "sys_print_count",
   "sys_add",
   "sys_ps",
+  "sys_sendmessage",
+  "sys_recvmessage",
 };
 
 
