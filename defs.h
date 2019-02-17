@@ -121,6 +121,12 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 void            printrunningprocess(void);
+void            ipcstarter(void);
+int             getMessageBuffer(void);
+void            freeMessageBuffer(int);
+void            pushmessage(int , MessageBuffer* );
+MessageBuffer*  popmessage(int);
+
 
 // swtch.S
 void            swtch(struct context**, struct context*);

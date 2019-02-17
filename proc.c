@@ -556,8 +556,48 @@ void printrunningprocess(void){
     // {
     //   cprintf("%d %s ZOMBIE\n",p->pid, p->name);
     // }
-    if(p->state==RUNNING){
+    if(p->state!=UNUSED){
       cprintf("pid:%d name:%s\n", p->pid, p->name);
     }
   }
+}
+MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
+MessageBuffer* message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
+int free_message_buffer;
+int message_queue_head[NPROC];
+int message_queue_tail[NPROC];
+void ipcstarter(void){
+  // int* a[2];
+  // cprintf("%d",a[3]);
+  // cprintf("fuck you---------------------------\n");
+  for(int i=0;i<NUMBEROFMESSAGEBUFFERS;i++){
+    message_buffer[i][0] = i+1;
+  }
+  message_buffer[NUMBEROFMESSAGEBUFFERS-1][0] = ENDOFFREELIST;
+  free_message_buffer=0;
+  for(int i=0;i<NPROC;i++){
+    message_queue_head[i]=0;
+    message_queue_tail[i]=0;
+  }
+
+}
+int getMessageBuffer(void){
+  int msg_no = free_message_buffer;
+  if(msg_no != ENDOFFREELIST){
+    free_message_buffer = message_buffer[msg_no][0];
+  }
+  return msg_no;
+}
+void freeMessageBuffer(int msg_no){
+  message_buffer[msg_no][0] = (int) freeMessageBuffer;
+  free_message_buffer=msg_no;
+}
+void pushmessage(int quenum, MessageBuffer* bfrptr){
+  message_queue[quenum][message_queue_tail[quenum]]=bfrptr;
+  message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
+}
+MessageBuffer * popmessage(int quenum){
+  MessageBuffer * tempbfr = message_queue[quenum][message_queue_head[quenum]];
+  message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
+  return tempbfr;
 }
