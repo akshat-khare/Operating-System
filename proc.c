@@ -562,7 +562,7 @@ void printrunningprocess(void){
   }
 }
 MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
-MessageBuffer* message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
+int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
 int free_message_buffer;
 int message_queue_head[NPROC];
 int message_queue_tail[NPROC];
@@ -570,8 +570,9 @@ void ipcstarter(void){
   // int* a[2];
   // cprintf("%d",a[3]);
   // cprintf("fuck you---------------------------\n");
-  for(int i=0;i<NUMBEROFMESSAGEBUFFERS;i++){
+  for(int i=0;i<NUMBEROFMESSAGEBUFFERS-1;i++){
     message_buffer[i][0] = i+1;
+    // cprintf("inside ipcstarter-------------------------------------------------------------------\n");
   }
   message_buffer[NUMBEROFMESSAGEBUFFERS-1][0] = ENDOFFREELIST;
   free_message_buffer=0;
@@ -584,15 +585,19 @@ void ipcstarter(void){
 int getMessageBuffer(void){
   int msg_no = free_message_buffer;
   if(msg_no != ENDOFFREELIST){
+    // cprintf("pointer of ms_no next is %d\n",message_buffer[msg_no][0]);
+    // cprintf("next type is %d \n",message_buffer[msg_no+1][0]);
     free_message_buffer = message_buffer[msg_no][0];
+  }else{
+    // cprintf("end reached\n");
   }
   return msg_no;
 }
 void freeMessageBuffer(int msg_no){
-  message_buffer[msg_no][0] = (int) freeMessageBuffer;
+  message_buffer[msg_no][0] = free_message_buffer;
   free_message_buffer=msg_no;
 }
-void pushmessage(int quenum, MessageBuffer* bfrptr){
+void pushmessage(int quenum, int bfrindex){
   // cprintf("message in push message is \n");
   // for(int i=1;i<MESSAGESIZE;i++){
   //   cprintf("%d",(*bfrptr)[i]);
@@ -604,11 +609,11 @@ void pushmessage(int quenum, MessageBuffer* bfrptr){
   //   cprintf("%s",&temp);
   // }
   // cprintf("\n");
-  message_queue[quenum][message_queue_tail[quenum]]=bfrptr;
+  message_queue[quenum][message_queue_tail[quenum]]=bfrindex;
   message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
 }
-MessageBuffer * popmessage(int quenum){
-  MessageBuffer * tempbfr = message_queue[quenum][message_queue_head[quenum]];
+int popmessage(int quenum){
+  int tempbfr = message_queue[quenum][message_queue_head[quenum]];
   message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
   return tempbfr;
 }

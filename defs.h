@@ -124,8 +124,8 @@ void            printrunningprocess(void);
 void            ipcstarter(void);
 int             getMessageBuffer(void);
 void            freeMessageBuffer(int);
-void            pushmessage(int , MessageBuffer* );
-MessageBuffer*  popmessage(int);
+void            pushmessage(int , int);
+int             popmessage(int);
 
 
 // swtch.S

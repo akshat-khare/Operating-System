@@ -130,9 +130,13 @@ int sys_sendmessage(void){
   char * b;
   argint(0,&a);
   argstr(1,&b);
-  cprintf("a is %d\n",a);
-  cprintf("b is %s\n",b);
+  // cprintf("a is %d\n",a);
+  // cprintf("b is %s\n",b);
+  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
   int tempmsgbfr = getMessageBuffer();
+  // cprintf("buffer got is %d\n",tempmsgbfr);
+  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
+
   // int * tempintptr = (int *) b;
   // cprintf("temp is %d\n",tempintptr[0]);
   // cprintf("len 1 is %d len 2 is %d\n", NELEM(b), NELEM(tempintptr));
@@ -151,7 +155,7 @@ int sys_sendmessage(void){
   //   cprintf("%s",&temp);
   // }
   // cprintf("\n");
-  pushmessage(a,&(message_buffer[tempmsgbfr]));
+  pushmessage(a,tempmsgbfr);
   return 0;
 }
 int sys_recvmessage(void){
@@ -159,10 +163,17 @@ int sys_recvmessage(void){
   char* b;
   argint(0,&a);
   argptr(1,&b, 2);
-  MessageBuffer * temp = popmessage(a);
+  // cprintf("executing pop message\n");
+  int temp = popmessage(a);
+  // cprintf("now copying from buffer %d\n",temp);
+
   for(int i=1;i<MESSAGESIZE;i++){
-    b[i-1]=(char) ((*temp)[i]);
+    b[i-1]=(char) ((message_buffer[temp])[i]);
   }
+  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
+  freeMessageBuffer(temp);
+  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
+
   // b[0]='a';
   // cprintf("recv part %s\n",b);
   return 0;
