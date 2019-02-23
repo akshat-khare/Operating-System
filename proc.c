@@ -626,6 +626,7 @@ int popmessage(int quenum){
 }
 void sleepcustom(void){
   acquire(&ptable.lock);
+  // cprintf("Pid: %d State: %d Lock: %d\n",myproc()->pid,myproc()->state,ptable.lock);
   sleep(myproc(), &ptable.lock);
   release(&ptable.lock);
 }

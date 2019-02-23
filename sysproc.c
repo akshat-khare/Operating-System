@@ -159,7 +159,7 @@ int sys_send(void){
   // }
   // cprintf("\n");
   pushmessage(a,tempmsgbfr);
-  wakeupcustom(c);
+  wakeupcustom(a);
   return 0;
 }
 int sys_recv(void){
