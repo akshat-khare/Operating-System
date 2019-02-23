@@ -127,7 +127,6 @@ void            freeMessageBuffer(int);
 void            pushmessage(int , int);
 int             popmessage(int);
 
-
 // swtch.S
 void            swtch(struct context**, struct context*);
 

@@ -110,8 +110,8 @@ extern int sys_toggle(void);
 extern int sys_print_count(void);
 extern int sys_add(void);
 extern int sys_ps(void);
-extern int sys_sendmessage(void);
-extern int sys_recvmessage(void);
+extern int sys_send(void);
+extern int sys_recv(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -140,8 +140,8 @@ static int (*syscalls[])(void) = {
 [SYS_print_count] sys_print_count,
 [SYS_add]     sys_add,
 [SYS_ps]      sys_ps,
-[SYS_sendmessage] sys_sendmessage,
-[SYS_recvmessage] sys_recvmessage,
+[SYS_send] sys_send,
+[SYS_recv] sys_recv,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -171,12 +171,11 @@ const char *syscallstr[NELEM(syscalls)]= {
  "sys_print_count",
   "sys_add",
   "sys_ps",
-  "sys_sendmessage",
-  "sys_recvmessage",
+  "sys_send",
+  "sys_recv",
 };
 
-
-static int* syscallctr[NELEM(syscalls)];
+static int syscallctr[NELEM(syscalls)];
 
 void reinitializeprinthelper(){
   if(togglestate==0){
@@ -193,12 +192,16 @@ void printcounthelper(){
 
     for(int i=0;i<NELEM(syscalls)-1;i++){
       int tempctr = (int)syscallctr[i];
-      cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
+      if(tempctr!=0){
+
+        cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
+      }
       // }
     }
   }
 }
 // togglestate=0;
+
 void
 syscall(void)
 {
@@ -206,10 +209,11 @@ syscall(void)
   struct proc *curproc = myproc();
 
   num = curproc->tf->eax;
+
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
-    // specialhandler(num); 
+    // specialhandler(num);
     if(togglestate==1){
-      syscallctr[num] = syscallctr[num]+1;
+      syscallctr[num-1] = syscallctr[num-1]+1;
     }
     curproc->tf->eax = syscalls[num]();
   } else {

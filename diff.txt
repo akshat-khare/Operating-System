@@ -1,0 +1,644 @@
+diff --git a/Makefile b/Makefile
+index 09d790c..af7b958 100644
+--- a/Makefile
++++ b/Makefile
+@@ -181,6 +181,14 @@ UPROGS=\
+ 	_usertests\
+ 	_wc\
+ 	_zombie\
++	_user_toggle\
++	_print_count\
++	_clear\
++	_shutdown\
++	_user_add\
++	_printrunningprocess\
++	_sendmessage\
++	_recvmessage\
+ 
+ fs.img: mkfs README $(UPROGS)
+ 	./mkfs fs.img README $(UPROGS)
+@@ -219,7 +227,7 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
+ ifndef CPUS
+ CPUS := 2
+ endif
+-QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
++QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA) -device isa-debug-exit,iobase=0xf4,iosize=0x04 
+ 
+ qemu: fs.img xv6.img
+ 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
+@@ -248,6 +256,13 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
+ # check in that version.
+ 
+ EXTRA=\
++	clear.c\
++	sendmessage.c\
++	recvmessage.c\
++	user_add\
++	shutdown.c\
++	printrunningprocess\
++	user_toggle.c print_count.c\
+ 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
+ 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
+ 	printf.c umalloc.c\
+diff --git a/clear.c b/clear.c
+new file mode 100644
+index 0000000..4cc5446
+--- /dev/null
++++ b/clear.c
+@@ -0,0 +1,18 @@
++
++#include "types.h"
++#include "user.h"
++int hi=0;
++void clear(int x){
++    // if(x=='x')return;
++    // printf(1,"\xa");
++    // clear(x+('1'-48));
++    printf(1,"hello\n");
++    printf(1,"%d\n",hi);
++    hi = hi +1;
++    printf(1,hi+"\n");
++}
++int main(void){
++    printf(1, "called%d\n",hi);
++    hi = hi+1;
++    clear('A');exit();
++}
+\ No newline at end of file
+diff --git a/defs.h b/defs.h
+index 82fb982..7f56d11 100644
+--- a/defs.h
++++ b/defs.h
+@@ -120,6 +120,13 @@ void            userinit(void);
+ int             wait(void);
+ void            wakeup(void*);
+ void            yield(void);
++void            printrunningprocess(void);
++void            ipcstarter(void);
++int             getMessageBuffer(void);
++void            freeMessageBuffer(int);
++void            pushmessage(int , int);
++int             popmessage(int);
++
+ 
+ // swtch.S
+ void            swtch(struct context**, struct context*);
+@@ -154,6 +161,8 @@ int             argptr(int, char**, int);
+ int             argstr(int, char**);
+ int             fetchint(uint, int*);
+ int             fetchstr(uint, char**);
++void            printcounthelper();
++void            reinitializeprinthelper();
+ void            syscall(void);
+ 
+ // timer.c
+diff --git a/main.c b/main.c
+index 9924e64..4b581d8 100644
+--- a/main.c
++++ b/main.c
+@@ -27,6 +27,7 @@ main(void)
+   consoleinit();   // console hardware
+   uartinit();      // serial port
+   pinit();         // process table
++  ipcstarter(); 
+   tvinit();        // trap vectors
+   binit();         // buffer cache
+   fileinit();      // file table
+@@ -35,6 +36,7 @@ main(void)
+   kinit2(P2V(4*1024*1024), P2V(PHYSTOP)); // must come after startothers()
+   userinit();      // first user process
+   mpmain();        // finish this processor's setup
++  
+ }
+ 
+ // Other CPUs jump here from entryother.S.
+diff --git a/param.h b/param.h
+index a7e90ef..3bfcc24 100644
+--- a/param.h
++++ b/param.h
+@@ -11,4 +11,7 @@
+ #define LOGSIZE      (MAXOPBLOCKS*3)  // max data blocks in on-disk log
+ #define NBUF         (MAXOPBLOCKS*3)  // size of disk block cache
+ #define FSSIZE       1000  // size of file system in blocks
++#define NUMBEROFMESSAGEBUFFERS  200 //number of message buffers
++#define ENDOFFREELIST -1 //end of messages
++
+ 
+diff --git a/print_count.c b/print_count.c
+new file mode 100644
+index 0000000..b2746e9
+--- /dev/null
++++ b/print_count.c
+@@ -0,0 +1,10 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  print_count();	
++  exit();
++}
+\ No newline at end of file
+diff --git a/printrunningprocess.c b/printrunningprocess.c
+new file mode 100644
+index 0000000..2c3ee05
+--- /dev/null
++++ b/printrunningprocess.c
+@@ -0,0 +1,10 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  ps();
++  exit();
++}
+diff --git a/proc.c b/proc.c
+index 806b1b1..e0e5bc7 100644
+--- a/proc.c
++++ b/proc.c
+@@ -532,3 +532,88 @@ procdump(void)
+     cprintf("\n");
+   }
+ }
++
++void printrunningprocess(void){
++  struct proc *p;
++  for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
++    // if(p->state==RUNNING){
++    //   cprintf("%d %s running\n",p->pid, p->name);
++    // }else if(p->state==RUNNABLE){
++    //   cprintf("%d %s runnable\n",p->pid, p->name);
++
++    // }else if(p->state==SLEEPING){
++    //   cprintf("%d %s sleeping\n",p->pid, p->name);
++
++    // }else if(p->state==UNUSED)
++    // {
++    //   cprintf("%d %s UNUSED\n",p->pid, p->name);
++       
++    // }else if(p->state==EMBRYO)
++    // {
++    //   cprintf("%d %s EMBRYO\n",p->pid, p->name);
++      
++    // }else if(p->state==ZOMBIE)
++    // {
++    //   cprintf("%d %s ZOMBIE\n",p->pid, p->name);
++    // }
++    if(p->state!=UNUSED){
++      cprintf("pid:%d name:%s\n", p->pid, p->name);
++    }
++  }
++}
++MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
++int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
++int free_message_buffer;
++int message_queue_head[NPROC];
++int message_queue_tail[NPROC];
++void ipcstarter(void){
++  // int* a[2];
++  // cprintf("%d",a[3]);
++  // cprintf("fuck you---------------------------\n");
++  for(int i=0;i<NUMBEROFMESSAGEBUFFERS-1;i++){
++    message_buffer[i][0] = i+1;
++    // cprintf("inside ipcstarter-------------------------------------------------------------------\n");
++  }
++  message_buffer[NUMBEROFMESSAGEBUFFERS-1][0] = ENDOFFREELIST;
++  free_message_buffer=0;
++  for(int i=0;i<NPROC;i++){
++    message_queue_head[i]=0;
++    message_queue_tail[i]=0;
++  }
++
++}
++int getMessageBuffer(void){
++  int msg_no = free_message_buffer;
++  if(msg_no != ENDOFFREELIST){
++    // cprintf("pointer of ms_no next is %d\n",message_buffer[msg_no][0]);
++    // cprintf("next type is %d \n",message_buffer[msg_no+1][0]);
++    free_message_buffer = message_buffer[msg_no][0];
++  }else{
++    // cprintf("end reached\n");
++  }
++  return msg_no;
++}
++void freeMessageBuffer(int msg_no){
++  message_buffer[msg_no][0] = free_message_buffer;
++  free_message_buffer=msg_no;
++}
++void pushmessage(int quenum, int bfrindex){
++  // cprintf("message in push message is \n");
++  // for(int i=1;i<MESSAGESIZE;i++){
++  //   cprintf("%d",(*bfrptr)[i]);
++  // }
++  // cprintf("\n");
++  // cprintf("it actually means\n");
++  // for(int i=1;i<MESSAGESIZE;i++){
++  //   char temp =(char) ((*bfrptr)[i]+'0');
++  //   cprintf("%s",&temp);
++  // }
++  // cprintf("\n");
++  message_queue[quenum][message_queue_tail[quenum]]=bfrindex;
++  message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
++}
++int popmessage(int quenum){
++  int tempbfr = message_queue[quenum][message_queue_head[quenum]];
++  message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
++  return tempbfr;
++}
+\ No newline at end of file
+diff --git a/proc.h b/proc.h
+index 1647114..c1bc01d 100644
+--- a/proc.h
++++ b/proc.h
+@@ -50,7 +50,6 @@ struct proc {
+   struct inode *cwd;           // Current directory
+   char name[16];               // Process name (debugging)
+ };
+-
+ // Process memory is laid out contiguously, low addresses first:
+ //   text
+ //   original data and bss
+diff --git a/recvmessage.c b/recvmessage.c
+new file mode 100644
+index 0000000..14379ba
+--- /dev/null
++++ b/recvmessage.c
+@@ -0,0 +1,18 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  int a=atoi(argv[1]);
++  char* putinthis=(char *)malloc(8);
++  int temp=recvmessage(a,putinthis);
++//   printf(1,"answer is \n");	
++//   for(int i=0;i<8;i++){
++//       printf(1,"%s", (char *) (putinthis[i]+'0'));
++//   }
++//   printf(1,"\n");
++  printf(1, "status is %d str is %s\n",temp,putinthis);
++  exit();
++}
+diff --git a/run.sh b/run.sh
+new file mode 100755
+index 0000000..ea738cc
+--- /dev/null
++++ b/run.sh
+@@ -0,0 +1,3 @@
++make clean
++make
++make qemu
+\ No newline at end of file
+diff --git a/sendmessage.c b/sendmessage.c
+new file mode 100644
+index 0000000..4dde2f4
+--- /dev/null
++++ b/sendmessage.c
+@@ -0,0 +1,13 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  int a=atoi(argv[1]);
++  char* b=argv[2];
++  int temp=sendmessage(a,b);	
++  printf(1, "status is %d\n",temp);
++  exit();
++}
+diff --git a/shutdown.c b/shutdown.c
+new file mode 100644
+index 0000000..cb988ee
+--- /dev/null
++++ b/shutdown.c
+@@ -0,0 +1,8 @@
++#include "types.h"
++#include "user.h"
++
++int main(void)
++{
++    halt();
++    exit();
++}
+\ No newline at end of file
+diff --git a/syscall.c b/syscall.c
+index ee85261..a66d83b 100644
+--- a/syscall.c
++++ b/syscall.c
+@@ -13,6 +13,8 @@
+ // library system call function. The saved user %esp points
+ // to a saved program counter, and then the first argument.
+ 
++int togglestate=0;
++
+ // Fetch the int at addr from the current process.
+ int
+ fetchint(uint addr, int *ip)
+@@ -103,6 +105,13 @@ extern int sys_unlink(void);
+ extern int sys_wait(void);
+ extern int sys_write(void);
+ extern int sys_uptime(void);
++extern int sys_halt(void);
++extern int sys_toggle(void);
++extern int sys_print_count(void);
++extern int sys_add(void);
++extern int sys_ps(void);
++extern int sys_sendmessage(void);
++extern int sys_recvmessage(void);
+ 
+ static int (*syscalls[])(void) = {
+ [SYS_fork]    sys_fork,
+@@ -126,8 +135,70 @@ static int (*syscalls[])(void) = {
+ [SYS_link]    sys_link,
+ [SYS_mkdir]   sys_mkdir,
+ [SYS_close]   sys_close,
++[SYS_halt]   sys_halt,
++[SYS_toggle]  sys_toggle,
++[SYS_print_count] sys_print_count,
++[SYS_add]     sys_add,
++[SYS_ps]      sys_ps,
++[SYS_sendmessage] sys_sendmessage,
++[SYS_recvmessage] sys_recvmessage,
++};
++
++const char *syscallstr[NELEM(syscalls)]= {
++  "sys_fork",
++  "sys_exit",
++  "sys_wait",
++  "sys_pipe",
++  "sys_read",
++  "sys_kill",
++  "sys_exec",
++  "sys_fstat",
++  "sys_chdir",
++  "sys_dup",
++  "sys_getpid",
++  "sys_sbrk",
++  "sys_sleep",
++  "sys_uptime",
++  "sys_open",
++  "sys_write",
++  "sys_mknod",
++  "sys_unlink",
++  "sys_link",
++  "sys_mkdir",
++  "sys_close",
++ "sys_halt",
++  "sys_toggle",
++ "sys_print_count",
++  "sys_add",
++  "sys_ps",
++  "sys_sendmessage",
++  "sys_recvmessage",
+ };
+ 
++
++static int* syscallctr[NELEM(syscalls)];
++
++void reinitializeprinthelper(){
++  if(togglestate==0){
++    for(int i=0;i<NELEM(syscalls);i++){
++      int tempctr = (int)syscallctr[i];
++      if(tempctr!=0){
++        syscallctr[i]=0;
++      }
++    }
++  }
++}
++void printcounthelper(){
++  if(togglestate==1){
++
++    for(int i=0;i<NELEM(syscalls)-1;i++){
++      int tempctr = (int)syscallctr[i];
++      cprintf("%s %d\n",(char *) syscallstr[i], tempctr);
++      // }
++    }
++  }
++}
++// togglestate=0;
+ void
+ syscall(void)
+ {
+@@ -136,6 +207,10 @@ syscall(void)
+ 
+   num = curproc->tf->eax;
+   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
++    // specialhandler(num); 
++    if(togglestate==1){
++      syscallctr[num] = syscallctr[num]+1;
++    }
+     curproc->tf->eax = syscalls[num]();
+   } else {
+     cprintf("%d %s: unknown sys call %d\n",
+diff --git a/syscall.h b/syscall.h
+index bc5f356..1e75d46 100644
+--- a/syscall.h
++++ b/syscall.h
+@@ -20,3 +20,10 @@
+ #define SYS_link   19
+ #define SYS_mkdir  20
+ #define SYS_close  21
++#define SYS_halt 22
++#define SYS_toggle 23
++#define SYS_print_count 24
++#define SYS_add     25
++#define SYS_ps      26
++#define SYS_sendmessage 27
++#define SYS_recvmessage 28
+\ No newline at end of file
+diff --git a/sysproc.c b/sysproc.c
+index 0686d29..a5a5ca8 100644
+--- a/sysproc.c
++++ b/sysproc.c
+@@ -89,3 +89,92 @@ sys_uptime(void)
+   release(&tickslock);
+   return xticks;
+ }
++// int hii=0;
++int
++sys_halt(void)
++{
++  outb(0xf4, 0x00);
++  // hii = hii +1;
++  // cprintf("%d\n",hii);
++  // cprintf("%d", syscallctr)
++  return 0;
++}
++int 
++sys_toggle(void){
++  togglestate=1-togglestate;
++  reinitializeprinthelper();
++  return 0;
++}
++int
++sys_print_count(void){
++  printcounthelper();
++  return 0;
++}
++int sys_add(void){
++  int a;
++  int b;
++  argint(0, &a);
++  argint(1, &b);
++  // cprintf("a is %d\n",a);
++  // cprintf("b is %d\n",b);
++  int temp = a+b;
++  // cprintf("%d\n",temp);
++  return temp;
++}
++int sys_ps(void){
++  printrunningprocess();
++  return 0;
++}
++int sys_sendmessage(void){
++  int a;
++  char * b;
++  argint(0,&a);
++  argstr(1,&b);
++  // cprintf("a is %d\n",a);
++  // cprintf("b is %s\n",b);
++  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
++  int tempmsgbfr = getMessageBuffer();
++  // cprintf("buffer got is %d\n",tempmsgbfr);
++  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
++
++  // int * tempintptr = (int *) b;
++  // cprintf("temp is %d\n",tempintptr[0]);
++  // cprintf("len 1 is %d len 2 is %d\n", NELEM(b), NELEM(tempintptr));
++  for(int i=1;i<MESSAGESIZE;i++){
++    int temp = (int) (b[i-1]);
++    message_buffer[tempmsgbfr][i]=temp;
++  }
++  // cprintf("message in send message is \n");
++  // for(int i=1;i<MESSAGESIZE;i++){
++  //   cprintf("%d",(message_buffer[tempmsgbfr][i]));
++  // }
++  // cprintf("\n");
++  // cprintf("it actually means\n");
++  // for(int i=1;i<MESSAGESIZE;i++){
++  //   char temp =(char) message_buffer[tempmsgbfr][i]+'0';
++  //   cprintf("%s",&temp);
++  // }
++  // cprintf("\n");
++  pushmessage(a,tempmsgbfr);
++  return 0;
++}
++int sys_recvmessage(void){
++  int a;
++  char* b;
++  argint(0,&a);
++  argptr(1,&b, 2);
++  // cprintf("executing pop message\n");
++  int temp = popmessage(a);
++  // cprintf("now copying from buffer %d\n",temp);
++
++  for(int i=1;i<MESSAGESIZE;i++){
++    b[i-1]=(char) ((message_buffer[temp])[i]);
++  }
++  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
++  freeMessageBuffer(temp);
++  // cprintf("freemessagebuffer is %d\n",free_message_buffer);
++
++  // b[0]='a';
++  // cprintf("recv part %s\n",b);
++  return 0;
++}
+\ No newline at end of file
+diff --git a/types.h b/types.h
+index e4adf64..729bf0b 100644
+--- a/types.h
++++ b/types.h
+@@ -1,4 +1,13 @@
++#include "param.h"
+ typedef unsigned int   uint;
+ typedef unsigned short ushort;
+ typedef unsigned char  uchar;
+ typedef uint pde_t;
++extern int togglestate;
++#define MESSAGESIZE  9      //size of message buffer
++typedef int MessageBuffer[MESSAGESIZE];
++extern MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
++extern int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
++extern int free_message_buffer;
++extern int message_queue_head[NPROC];
++extern int message_queue_tail[NPROC];
+\ No newline at end of file
+diff --git a/user.h b/user.h
+index 4f99c52..096a282 100644
+--- a/user.h
++++ b/user.h
+@@ -23,6 +23,13 @@ int getpid(void);
+ char* sbrk(int);
+ int sleep(int);
+ int uptime(void);
++int halt(void);
++int toggle(void);
++int print_count(void);
++int add(int, int);
++int ps(void);
++int sendmessage(int, char *);
++int recvmessage(int, char *);
+ 
+ // ulib.c
+ int stat(const char*, struct stat*);
+diff --git a/user_add.c b/user_add.c
+new file mode 100644
+index 0000000..cdae12a
+--- /dev/null
++++ b/user_add.c
+@@ -0,0 +1,13 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  int a=atoi(argv[1]);
++  int b=atoi(argv[2]);
++  int temp=add(a,b);	
++  printf(1, "answer is %d\n",temp);
++  exit();
++}
+diff --git a/user_toggle.c b/user_toggle.c
+new file mode 100644
+index 0000000..5c4ca51
+--- /dev/null
++++ b/user_toggle.c
+@@ -0,0 +1,10 @@
++#include "types.h"
++#include "user.h"
++#include "date.h"
++
++int
++main(int argc, char *argv[])
++{
++  toggle();	
++  exit();
++}
+diff --git a/usys.S b/usys.S
+index 8bfd8a1..8d2611f 100644
+--- a/usys.S
++++ b/usys.S
+@@ -29,3 +29,10 @@ SYSCALL(getpid)
+ SYSCALL(sbrk)
+ SYSCALL(sleep)
+ SYSCALL(uptime)
++SYSCALL(halt)
++SYSCALL(toggle)
++SYSCALL(print_count)
++SYSCALL(add)
++SYSCALL(ps)
++SYSCALL(sendmessage)
++SYSCALL(recvmessage)
+\ No newline at end of file

@@ -89,6 +89,7 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
 // int hii=0;
 int
 sys_halt(void)
@@ -125,11 +126,13 @@ int sys_ps(void){
   printrunningprocess();
   return 0;
 }
-int sys_sendmessage(void){
+int sys_send(void){
+  int c;
   int a;
   char * b;
-  argint(0,&a);
-  argstr(1,&b);
+  argint(0,&c);
+  argint(1,&a);
+  argstr(2,&b);
   // cprintf("a is %d\n",a);
   // cprintf("b is %s\n",b);
   // cprintf("freemessagebuffer is %d\n",free_message_buffer);
@@ -158,13 +161,17 @@ int sys_sendmessage(void){
   pushmessage(a,tempmsgbfr);
   return 0;
 }
-int sys_recvmessage(void){
+int sys_recv(void){
   int a;
   char* b;
-  argint(0,&a);
-  argptr(1,&b, 2);
+  // argint(0,&a);
+  a = myproc()->pid;
+  argptr(0,&b, 2);
   // cprintf("executing pop message\n");
   int temp = popmessage(a);
+  if(temp==-1){
+    return -1;
+  }
   // cprintf("now copying from buffer %d\n",temp);
 
   for(int i=1;i<MESSAGESIZE;i++){

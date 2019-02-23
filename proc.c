@@ -532,7 +532,6 @@ procdump(void)
     cprintf("\n");
   }
 }
-
 void printrunningprocess(void){
   struct proc *p;
   for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
@@ -580,6 +579,11 @@ void ipcstarter(void){
     message_queue_head[i]=0;
     message_queue_tail[i]=0;
   }
+  // for(int i=0;i<NPROC;i++){
+  //   for(int j=0;j<NUMBEROFMESSAGEBUFFERS;j++){
+  //     message_queue[i][j]=-1;
+  //   }
+  // }
 
 }
 int getMessageBuffer(void){
@@ -613,6 +617,9 @@ void pushmessage(int quenum, int bfrindex){
   message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
 }
 int popmessage(int quenum){
+  if(message_queue_head[quenum]==message_queue_tail[quenum]){
+    return -1;
+  }
   int tempbfr = message_queue[quenum][message_queue_head[quenum]];
   message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
   return tempbfr;

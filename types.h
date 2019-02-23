@@ -5,6 +5,7 @@ typedef unsigned char  uchar;
 typedef uint pde_t;
 extern int togglestate;
 #define MESSAGESIZE  9      //size of message buffer
+#define MSGSIZE 8
 typedef int MessageBuffer[MESSAGESIZE];
 extern MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
 extern int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
