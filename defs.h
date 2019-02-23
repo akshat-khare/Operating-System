@@ -126,6 +126,8 @@ int             getMessageBuffer(void);
 void            freeMessageBuffer(int);
 void            pushmessage(int , int);
 int             popmessage(int);
+void            sleepcustom(void);
+void            wakeupcustom(int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

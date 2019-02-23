@@ -159,6 +159,7 @@ int sys_send(void){
   // }
   // cprintf("\n");
   pushmessage(a,tempmsgbfr);
+  wakeupcustom(c);
   return 0;
 }
 int sys_recv(void){
@@ -170,7 +171,9 @@ int sys_recv(void){
   // cprintf("executing pop message\n");
   int temp = popmessage(a);
   if(temp==-1){
-    return -1;
+    
+    sleepcustom();
+    // return -1;
   }
   // cprintf("now copying from buffer %d\n",temp);
 

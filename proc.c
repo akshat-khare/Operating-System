@@ -624,3 +624,15 @@ int popmessage(int quenum){
   message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
   return tempbfr;
 }
+void sleepcustom(void){
+  acquire(&ptable.lock);
+  sleep(myproc(), &ptable.lock);
+  release(&ptable.lock);
+}
+void wakeupcustom(int pm){
+  // acquire(&ptable.lock);
+  if((&ptable.proc[pm])->state == SLEEPING){
+    wakeup(&ptable.proc[pm]);
+  }
+  // release(&ptable.lock);
+}
