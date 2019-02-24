@@ -200,3 +200,52 @@ int sys_recv(void){
   // cprintf("recv part %s\n",b);
   return 0;
 }
+int sigchild[NPROC];
+MessageBuffer multibuffer;
+int sys_registerhandler(void){
+  int a;
+  int b;
+  argint(0,&a);
+  argint(1,&b);
+  sigchild[a]=b;
+  // cprintf("Going to sleep pid, cid %d %d\n", a, b);
+  sleepcustom();
+  return 0;
+}
+int sys_send_multi(void){
+  int a;
+  int b;
+  int c;
+  char * d;
+  argint(0,&a);
+  argint(1,&b);
+  argint(2,&c);
+  argstr(3,&d);
+  int * e;
+  e=(int *)c;
+  int arr[b];
+  for(int i=0;i<b;i++){
+    // cprintf("adding to arr %d\n",*e);
+    arr[i]=*e;
+    e++;
+  }
+  for(int i=1;i<MESSAGESIZE;i++){
+    int temp = (int) (d[i-1]);
+    multibuffer[i]=temp;
+  }
+  for(int i=0;i<b;i++){
+    // cprintf("waking up fork of %d that is %d\n",arr[i], sigchild[arr[i]]);
+    wakeupcustom(sigchild[arr[i]]);
+  }
+  return 0;
+
+}
+int sys_recvmulti(void){
+  char* b;
+  argptr(0,&b, 2);
+  for(int i=1;i<MESSAGESIZE;i++){
+    b[i-1]=(char) (multibuffer[i]);
+  }
+  return 0;
+}
+

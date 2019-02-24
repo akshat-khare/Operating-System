@@ -50,7 +50,7 @@ main(int argc, char *argv[])
 				sumlocal=add(sumlocal,arr[j]);
 			}
 			char * mess = (char *) (&sumlocal);
-			// printf(1,"child %d sending sumlocal %d\n",i,sumlocal);
+			printf(1,"child %d sending sumlocal %d mess %s\n",i,sumlocal, mess);
 			int stat=-1;
 			while(stat!=0){
 				stat=send(cid,masterpid,mess);

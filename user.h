@@ -30,6 +30,9 @@ int add(int, int);
 int ps(void);
 int send(int, int, char *);
 int recv(char *);
+int registerhandler(int, int);
+int send_multi(int, int, int *, char*);
+int recvmulti(char *);
 
 
 // ulib.c

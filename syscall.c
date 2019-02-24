@@ -112,6 +112,9 @@ extern int sys_add(void);
 extern int sys_ps(void);
 extern int sys_send(void);
 extern int sys_recv(void);
+extern int sys_registerhandler(void);
+extern int sys_send_multi(void);
+extern int sys_recvmulti(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -142,6 +145,9 @@ static int (*syscalls[])(void) = {
 [SYS_ps]      sys_ps,
 [SYS_send] sys_send,
 [SYS_recv] sys_recv,
+[SYS_registerhandler] sys_registerhandler,
+[SYS_send_multi] sys_send_multi,
+[SYS_recvmulti] sys_recvmulti,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -173,6 +179,9 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_ps",
   "sys_send",
   "sys_recv",
+  "sys_registerhandler",
+  "sys_send_multi",
+  "sys_recvmulti",
 };
 
 static int syscallctr[NELEM(syscalls)];

@@ -535,29 +535,31 @@ procdump(void)
 void printrunningprocess(void){
   struct proc *p;
   for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
-    // if(p->state==RUNNING){
-    //   cprintf("%d %s running\n",p->pid, p->name);
-    // }else if(p->state==RUNNABLE){
-    //   cprintf("%d %s runnable\n",p->pid, p->name);
+    if(p->state==RUNNING){
+      cprintf("%d %s running\n",p->pid, p->name);
+    }else if(p->state==RUNNABLE){
+      cprintf("%d %s runnable\n",p->pid, p->name);
 
-    // }else if(p->state==SLEEPING){
-    //   cprintf("%d %s sleeping\n",p->pid, p->name);
+    }else if(p->state==SLEEPING){
+      cprintf("%d %s sleeping\n",p->pid, p->name);
 
-    // }else if(p->state==UNUSED)
+    }
+    // else if(p->state==UNUSED)
     // {
     //   cprintf("%d %s UNUSED\n",p->pid, p->name);
        
-    // }else if(p->state==EMBRYO)
-    // {
-    //   cprintf("%d %s EMBRYO\n",p->pid, p->name);
-      
-    // }else if(p->state==ZOMBIE)
-    // {
-    //   cprintf("%d %s ZOMBIE\n",p->pid, p->name);
     // }
-    if(p->state!=UNUSED){
-      cprintf("pid:%d name:%s\n", p->pid, p->name);
+    else if(p->state==EMBRYO)
+    {
+      cprintf("%d %s EMBRYO\n",p->pid, p->name);
+      
+    }else if(p->state==ZOMBIE)
+    {
+      cprintf("%d %s ZOMBIE\n",p->pid, p->name);
     }
+    // if(p->state!=UNUSED){
+    //   cprintf("pid:%d name:%s\n", p->pid, p->name);
+    // }
   }
 }
 MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
@@ -654,8 +656,22 @@ void sleepcustom(void){
 }
 void wakeupcustom(int pm){
   // acquire(&ptable.lock);
-  if((&ptable.proc[pm])->state == SLEEPING){
-    wakeup(&ptable.proc[pm]);
+
+
+
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pm)
+      break;    
+  }
+  // cprintf("---------Lets check status of pm = %d  ---------\n",pm);
+  // cprintf("SLEEPING MEANS %d and process pm pid is %d and state is %d \n",SLEEPING,p->pid, p->state);
+  // printrunningprocess();
+
+
+  if(p->state == SLEEPING){
+    // cprintf("---------------Found sleeping------------\n");
+    wakeup(p);
   }
   // release(&ptable.lock);
 }

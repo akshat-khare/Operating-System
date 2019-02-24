@@ -181,11 +181,10 @@ UPROGS=\
 	_usertests\
 	_wc\
 	_zombie\
-	_user_toggle\
-	_print_count\
 	_printrunningprocess\
 	_send\
 	_recv\
+	_multicast\
 	_assig1_1\
 	_assig1_2\
 	_assig1_3\
@@ -265,7 +264,7 @@ EXTRA=\
 	send.c\
 	recv.c\
 	printrunningprocess\
-	user_toggle.c print_count.c\
+	multicast.c\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c\

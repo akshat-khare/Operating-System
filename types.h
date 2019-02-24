@@ -12,4 +12,5 @@ extern int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
 extern int free_message_buffer;
 extern int message_queue_head[NPROC];
 extern int message_queue_tail[NPROC];
-
+extern int sigchild[NPROC];
+extern MessageBuffer multibuffer;
