@@ -1,9 +1,8 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
-#define NUMCHILD 8
-int cidarr[NUMCHILD];
-// int cidarrsister[NUMCHILD];
+#define NUMTHREADS 3
+// int cidarrsister[NUMTHREADS];
 int brother=-1;
 // int sister=-1;
 void handlesigint(int sinum){
@@ -14,10 +13,10 @@ void handlesigint(int sinum){
     // int brother=0;
     int pid=getpid();
     // int temp=0;
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
     // }
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     if(cidarrsister[i]==pid){
     //         brother=cidarr[i];
     //         break;
@@ -28,21 +27,21 @@ void handlesigint(int sinum){
     exit();
 }
 void signal(int typesig, void (*handler)(int)){
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
     // }
     int pid = getpid();
     int cid=fork();
     if(cid==0){
         int myrealpid = getpid();
-        // for(int i=0;i<NUMCHILD;i++){
+        // for(int i=0;i<NUMTHREADS;i++){
         //     if(cidarr[i]==pid){
         //         cidarrsister[i]=myrealpid;
         //         break;
         //     }
         // }
         brother=pid;
-        // for(int i=0;i<NUMCHILD;i++){
+        // for(int i=0;i<NUMTHREADS;i++){
         //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
         // }
         // printf(1,"Calling register handler for pid, cid %d %d\n",pid,myrealpid);
@@ -52,7 +51,7 @@ void signal(int typesig, void (*handler)(int)){
     }else{
         // printf(1,"Signal registering for pid, cid %d, %d\n",pid,cid);
         // int temp=0;
-        // for(int i=0;i<NUMCHILD;i++){
+        // for(int i=0;i<NUMTHREADS;i++){
         //     if(cidarr[i]==pid){
         //         cidarrsister[i]=cid;
         //         break;
@@ -64,25 +63,25 @@ void signal(int typesig, void (*handler)(int)){
 int
 main(int argc, char *argv[]) 
 {
-    // int NUMCHILD=4;
-    int signaldone[NUMCHILD];
-    for(int i=0;i<NUMCHILD;i++){
+    // int NUMTHREADS=4;
+    int signaldone[NUMTHREADS];
+    int cidarr[NUMTHREADS];
+    for(int i=0;i<NUMTHREADS;i++){
         signaldone[i]=0;
         // cidarr[i]=-1;
         // cidarrsister[i]=-1;
     }
     int masterpid = getpid();
-    int cidarr[NUMCHILD];
-    // int* cidarr = (int *)malloc(NUMCHILD);
-    for(int i=0;i<NUMCHILD;i++){
+    // int* cidarr = (int *)malloc(NUMTHREADS);
+    for(int i=0;i<NUMTHREADS;i++){
         cidarr[i]=-2;
     }
-	for(int i=0;i<NUMCHILD;i++){
+	for(int i=0;i<NUMTHREADS;i++){
         int cid = fork();
         if(cid==0){
             cidarr[i]=getpid();
             brother=getpid();
-            // for(int i=0;i<NUMCHILD;i++){
+            // for(int i=0;i<NUMTHREADS;i++){
             //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
             // }
             signal(1,handlesigint);
@@ -102,12 +101,12 @@ main(int argc, char *argv[])
             signaldone[i]=1;
         }
     }
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1, "Cidarr last element is ----- %d----\n",cidarr[i]);
     // }
     while(1==1){
         int alldone=1;
-        for(int i=0;i<NUMCHILD;i++){
+        for(int i=0;i<NUMTHREADS;i++){
             if(signaldone[i]==0){
                 alldone=0;
                 break;
@@ -119,21 +118,21 @@ main(int argc, char *argv[])
     }
     sleep(100);
     // ps();
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1, "Cidarr last element is -----%d----\n",cidarr[i]);
     // }
     // printf(1,"Done waiting for all threads to declare their signals\n");
     char *msg = (char *)malloc(MSGSIZE);
 	msg = "Hi";
     // printf(1,"Cidarr is \n");
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1,"--%d %d--- \n",i,cidarr[i]);
     // }
     // printf(1," End of cidarr\n");
-    // for(int i=0;i<NUMCHILD;i++){
+    // for(int i=0;i<NUMTHREADS;i++){
     //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
     // }
-    send_multi(masterpid,NUMCHILD, cidarr,(void *) msg);
+    send_multi(masterpid,NUMTHREADS, cidarr,(void *) msg);
     // ps();
     while(1==1){
 

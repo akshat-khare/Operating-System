@@ -535,31 +535,31 @@ procdump(void)
 void printrunningprocess(void){
   struct proc *p;
   for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
-    if(p->state==RUNNING){
-      cprintf("%d %s running\n",p->pid, p->name);
-    }else if(p->state==RUNNABLE){
-      cprintf("%d %s runnable\n",p->pid, p->name);
+    // if(p->state==RUNNING){
+    //   cprintf("%d %s running\n",p->pid, p->name);
+    // }else if(p->state==RUNNABLE){
+    //   cprintf("%d %s runnable\n",p->pid, p->name);
 
-    }else if(p->state==SLEEPING){
-      cprintf("%d %s sleeping\n",p->pid, p->name);
+    // }else if(p->state==SLEEPING){
+    //   cprintf("%d %s sleeping\n",p->pid, p->name);
 
-    }
-    // else if(p->state==UNUSED)
-    // {
-    //   cprintf("%d %s UNUSED\n",p->pid, p->name);
+    // }
+    // // else if(p->state==UNUSED)
+    // // {
+    // //   cprintf("%d %s UNUSED\n",p->pid, p->name);
        
-    // }
-    else if(p->state==EMBRYO)
-    {
-      cprintf("%d %s EMBRYO\n",p->pid, p->name);
+    // // }
+    // else if(p->state==EMBRYO)
+    // {
+    //   cprintf("%d %s EMBRYO\n",p->pid, p->name);
       
-    }else if(p->state==ZOMBIE)
-    {
-      cprintf("%d %s ZOMBIE\n",p->pid, p->name);
-    }
-    // if(p->state!=UNUSED){
-    //   cprintf("pid:%d name:%s\n", p->pid, p->name);
+    // }else if(p->state==ZOMBIE)
+    // {
+    //   cprintf("%d %s ZOMBIE\n",p->pid, p->name);
     // }
+    if(p->state!=UNUSED){
+      cprintf("pid:%d name:%s\n", p->pid, p->name);
+    }
   }
 }
 MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
