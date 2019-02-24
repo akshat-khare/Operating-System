@@ -127,6 +127,7 @@ int sys_ps(void){
   return 0;
 }
 int sys_send(void){
+  acquiresendlock();
   int c;
   int a;
   char * b;
@@ -160,6 +161,7 @@ int sys_send(void){
   // cprintf("\n");
   pushmessage(a,tempmsgbfr);
   wakeupcustom(a);
+  releasesendlock();
   return 0;
 }
 int sys_recv(void){
@@ -169,11 +171,19 @@ int sys_recv(void){
   a = myproc()->pid;
   argptr(0,&b, 2);
   // cprintf("executing pop message\n");
+  // acquiresendlock();
+
   int temp = popmessage(a);
-  if(temp==-1){
+  // releasesendlock();
+  // cprintf("temp of popmessage is %d\n",temp);
+  // if(temp==-1){
     
+  //   sleepcustom();
+  //   return -1;
+  // }
+  while(temp==-1){
     sleepcustom();
-    // return -1;
+    temp=popmessage(a);
   }
   // cprintf("now copying from buffer %d\n",temp);
 
@@ -181,7 +191,9 @@ int sys_recv(void){
     b[i-1]=(char) ((message_buffer[temp])[i]);
   }
   // cprintf("freemessagebuffer is %d\n",free_message_buffer);
+  // acquiresendlock();
   freeMessageBuffer(temp);
+  // releasesendlock();
   // cprintf("freemessagebuffer is %d\n",free_message_buffer);
 
   // b[0]='a';

@@ -565,10 +565,15 @@ int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
 int free_message_buffer;
 int message_queue_head[NPROC];
 int message_queue_tail[NPROC];
+// struct spinlock sendlock;
+struct{
+  struct spinlock lock;
+} sendlock;
 void ipcstarter(void){
   // int* a[2];
   // cprintf("%d",a[3]);
   // cprintf("fuck you---------------------------\n");
+  initlock(&sendlock.lock,"send");
   for(int i=0;i<NUMBEROFMESSAGEBUFFERS-1;i++){
     message_buffer[i][0] = i+1;
     // cprintf("inside ipcstarter-------------------------------------------------------------------\n");
@@ -586,7 +591,14 @@ void ipcstarter(void){
   // }
 
 }
+void acquiresendlock(void){
+  acquire(&sendlock.lock);
+}
+void releasesendlock(void){
+  release(&sendlock.lock);
+}
 int getMessageBuffer(void){
+    // acquire(&sendlock.lock);
   int msg_no = free_message_buffer;
   if(msg_no != ENDOFFREELIST){
     // cprintf("pointer of ms_no next is %d\n",message_buffer[msg_no][0]);
@@ -595,11 +607,14 @@ int getMessageBuffer(void){
   }else{
     // cprintf("end reached\n");
   }
+    // release(&sendlock.lock);
   return msg_no;
 }
 void freeMessageBuffer(int msg_no){
+  acquire(&sendlock.lock);
   message_buffer[msg_no][0] = free_message_buffer;
   free_message_buffer=msg_no;
+  release(&sendlock.lock);
 }
 void pushmessage(int quenum, int bfrindex){
   // cprintf("message in push message is \n");
@@ -613,16 +628,23 @@ void pushmessage(int quenum, int bfrindex){
   //   cprintf("%s",&temp);
   // }
   // cprintf("\n");
+  // acquire(&sendlock.lock);
   message_queue[quenum][message_queue_tail[quenum]]=bfrindex;
   message_queue_tail[quenum] = (message_queue_tail[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
+  // release(&sendlock.lock);
 }
 int popmessage(int quenum){
+  acquire(&sendlock.lock);
   if(message_queue_head[quenum]==message_queue_tail[quenum]){
+    release(&sendlock.lock);
     return -1;
+  }else{
+    int tempbfr = message_queue[quenum][message_queue_head[quenum]];
+    message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
+    release(&sendlock.lock);
+    return tempbfr;
+
   }
-  int tempbfr = message_queue[quenum][message_queue_head[quenum]];
-  message_queue_head[quenum] = (message_queue_head[quenum]+1)%(NUMBEROFMESSAGEBUFFERS);
-  return tempbfr;
 }
 void sleepcustom(void){
   acquire(&ptable.lock);

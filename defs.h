@@ -122,6 +122,8 @@ void            wakeup(void*);
 void            yield(void);
 void            printrunningprocess(void);
 void            ipcstarter(void);
+void            acquiresendlock(void);
+void            releasesendlock(void);
 int             getMessageBuffer(void);
 void            freeMessageBuffer(int);
 void            pushmessage(int , int);

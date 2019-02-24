@@ -183,8 +183,6 @@ UPROGS=\
 	_zombie\
 	_user_toggle\
 	_print_count\
-	_shutdown\
-	_user_add\
 	_printrunningprocess\
 	_send\
 	_recv\
@@ -195,6 +193,8 @@ UPROGS=\
 	_assig1_5\
 	_assig1_6\
 	_assig1_7\
+	_assig1_8\
+
 
 fs.img: mkfs README arr $(UPROGS)
 	./mkfs fs.img README arr $(UPROGS)
@@ -264,8 +264,6 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	send.c\
 	recv.c\
-	user_add\
-	shutdown.c\
 	printrunningprocess\
 	user_toggle.c print_count.c\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
@@ -273,7 +271,7 @@ EXTRA=\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
-	assig1_1.c assig1_2.c assig1_3.c assig1_4.c assig1_5.c assig1_6.c assig1_7.c\
+	assig1_1.c assig1_2.c assig1_3.c assig1_4.c assig1_5.c assig1_6.c assig1_7.c assig1_8\
 
 dist:
 	rm -rf dist

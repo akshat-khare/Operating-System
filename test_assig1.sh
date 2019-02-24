@@ -54,10 +54,10 @@ set testname [lindex $argv 0];
 spawn /bin/sh
 expect "$ "
 send "make qemu-nox\r"
-sleep 1
+sleep 10
 expect "$"
 send "$testname\r"
-sleep 1
+sleep 10
 expect "$"
 send "\x01"; send "x"
 expect "QEMU: Terminated\r"
