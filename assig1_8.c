@@ -1,8 +1,12 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
-#define NUMTHREADS 4
+#define NUMTHREADS 6
 int brother=-1;
+int arrglobal[1000];
+int start;
+int end;
+int masterpid;
 void handlesigint(int sinum){
     // printf(1, "Awakened\n");
     char *msgmulti = (char *)malloc(MSGSIZE);
@@ -22,7 +26,37 @@ void handlesigint(int sinum){
     //     }
     // }
     // printf(1,"Sending from sister %d to brother %d\n",pid, brother);
-    send(pid,brother,msgmulti);
+    // send(pid,brother,msgmulti);
+	// int temp=0;
+	// for(int i=0;i<1000;i++){
+	// 	temp+=arrglobal[i];
+	// }
+	// printf(1,"Array sum is %d\n",temp);
+
+
+	// char *msgbrother = (char *)malloc(MSGSIZE);
+	// int stat=-1;
+	// while(stat==-1){
+	// // signaldone[i]=1;
+	// 	stat=recv(msgbrother);
+	// }
+	// int * tempsumptr = (int *)msgbrother;
+	int * tempsumptr = (int * ) msgmulti;
+	int tempsum = *tempsumptr;
+	// printf(1,"sum brother got is %d\n",tempsum);
+	//processvariance
+	float varlocal=0.0;
+	float tempmean = (1.0*tempsum)/1000;
+	for(int j=start;j<end;j++){
+		varlocal += (1.0*arrglobal[j]-tempmean)*(1.0*arrglobal[j]-tempmean);
+	}
+	int varlocalint = (int) varlocal;
+	char * messvar = (char *) (&varlocalint);
+	// printf(1,"child %d sending varlocal %d mess %s\n",i,varlocalint, messvar);
+	int stat=-1;
+	while(stat!=0){
+		stat=send(pid,masterpid,messvar);
+	}
     exit();
 }
 void signal(int typesig, void (*handler)(int)){
@@ -44,6 +78,9 @@ void signal(int typesig, void (*handler)(int)){
         //     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
         // }
         // printf(1,"Calling register handler for pid, cid %d %d\n",pid,myrealpid);
+		// char * overmessage = (char *)malloc(MSGSIZE);
+		// overmessage="Over";
+		// send(myrealpid,masterpid,overmessage);
         registerhandler(pid,myrealpid);
         // printf(1,"After registerhandler for pid, cid %d %d\n",pid,myrealpid);
         handler(typesig);
@@ -89,8 +126,16 @@ main(int argc, char *argv[])
   
   	//----FILL THE CODE HERE for unicast sum and multicast variance
 	// int cidarr[8];
+	// arrglobal=(int *)malloc(1000);
+	for(int i=0;i<1000;i++){
+		arrglobal[i]=(int) arr[i];
+	}
+	// printf(1,"Array is \n");
+	// for(int i=0;i<1000;i++){
+	// 	printf(1,"%d\n",arrglobal[i]);
+	// }
 	int ansarr[8];
-	int masterpid=getpid();
+	masterpid=getpid();
 	int signaldone[NUMTHREADS];
     int cidarr[NUMTHREADS];
     for(int i=0;i<NUMTHREADS;i++){
@@ -106,8 +151,8 @@ main(int argc, char *argv[])
 		int cid=fork();
 		if(cid==0){
 			int sumlocal=0;
-			int start = i*(1000/NUMTHREADS);
-			int end;
+			start = i*(1000/NUMTHREADS);
+			// end;
 			if(i==NUMTHREADS-1){
 				end=1000;
 			}else{
@@ -133,28 +178,31 @@ main(int argc, char *argv[])
 				//     printf(1,"brother sister----%d %d---\n", cidarr[i],cidarrsister[i]);
 				// }
 				signal(1,handlesigint);
-				// cidarr[i] = getpid();
-				char *msgbrother = (char *)malloc(MSGSIZE);
-				stat=-1;
-				while(stat==-1){
-				// signaldone[i]=1;
-					stat=recv(msgbrother);
-				}
-				int * tempsumptr = (int *)msgbrother;
-				int tempsum = *tempsumptr;
-				// printf(1,"sum brother got is %d\n",tempsum);
-				//processvariance
-				float varlocal=0.0;
-				float tempmean = (1.0*tempsum)/1000;
-				for(int j=start;j<end;j++){
-					varlocal += (1.0*arr[j]-tempmean)*(1.0*arr[j]-tempmean);
-				}
-				int varlocalint = (int) varlocal;
-				char * messvar = (char *) (&varlocalint);
-				// printf(1,"child %d sending varlocal %d mess %s\n",i,varlocalint, messvar);
-				stat=-1;
-				while(stat!=0){
-					stat=send(cid,masterpid,messvar);
+				// // cidarr[i] = getpid();
+				// char *msgbrother = (char *)malloc(MSGSIZE);
+				// stat=-1;
+				// while(stat==-1){
+				// // signaldone[i]=1;
+				// 	stat=recv(msgbrother);
+				// }
+				// int * tempsumptr = (int *)msgbrother;
+				// int tempsum = *tempsumptr;
+				// // printf(1,"sum brother got is %d\n",tempsum);
+				// //processvariance
+				// float varlocal=0.0;
+				// float tempmean = (1.0*tempsum)/1000;
+				// for(int j=start;j<end;j++){
+				// 	varlocal += (1.0*arr[j]-tempmean)*(1.0*arr[j]-tempmean);
+				// }
+				// int varlocalint = (int) varlocal;
+				// char * messvar = (char *) (&varlocalint);
+				// // printf(1,"child %d sending varlocal %d mess %s\n",i,varlocalint, messvar);
+				// stat=-1;
+				// while(stat!=0){
+				// 	stat=send(cid,masterpid,messvar);
+				// }
+				while(1==1){
+
 				}
 			}
 
@@ -216,6 +264,13 @@ main(int argc, char *argv[])
 			}
 		}
 		sleep(100);
+		// for(int i=0;i<NUMTHREADS;i++){
+		// 	char * overmessage=(char *)malloc(MSGSIZE);
+		// 	int stat=-1;
+		// 	while(stat==-1){
+		// 		stat=recv(overmessage);
+		// 	}
+		// }
 
 		// float mean = (1.0*tot_sum)/1000;
 		char *summsg = (char *)malloc(MSGSIZE);
