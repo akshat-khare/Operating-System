@@ -9,11 +9,11 @@
 // #include<sys/wait.h> 
 // #include<time.h>
 // higher thread has higher priority
-#define P 9
-#define Psq 3
-#define P1 0
-#define P2 3
-#define P3 6
+// #define P 9
+// #define Psq 3
+// #define P1 0
+// #define P2 3
+// #define P3 6
 #define REQUEST 1
 #define REPLY 2
 #define RELEASE 3
@@ -27,9 +27,51 @@ float fabsm(float a){
 	return -1*a;
 return a;
 }
+int readint(int fdfile){
+    int maxsize=100;
+    char c;
+    int ans=0;
+    for(int i=0;i<maxsize;i++){
+        read(fdfile,&c,1);
+        if(c=='\n'){
+            break;
+        }
+        // printf(1,"%c is char\n",c);
+        int temp=c-'0';
+        // printf(1,"%d is temp\n",temp);
+        ans = 10*ans+temp;
+
+    }
+    return ans;
+}
+int mysqrt(int P){
+    int i=0;
+    for(i=0;i<P;i++){
+        if(i*i==P){
+            break;
+        }
+    }
+    return i;
+}
 int main(int argc, char *argv[])
 {
-    
+    int P=0;
+    int Psq=0;
+    int P1=0;
+    int P2=0;
+    int P3=0;
+    char * filename;
+    filename = "assig2b.inp";
+    int fdfile = open(filename,0);
+    P = readint(fdfile);
+    P1 = readint(fdfile);
+    P2 = readint(fdfile);
+    P3 = readint(fdfile);
+    if(P3==-1){
+        printf(1,"error\n");
+    }
+    Psq = mysqrt(P);
+    close(fdfile);
     int i,j;
     int numrow,numcol;
     //every pipe is incoming
@@ -84,7 +126,7 @@ int main(int argc, char *argv[])
     int tid=0;
     int targettid;
     // int masterpid = getpid();
-    int childpid;
+    int childpid=0;
     // int childpidarr[P];
     int ptype=0;
     int mybool;
@@ -343,7 +385,7 @@ int main(int argc, char *argv[])
                 //I have all the grants
                 printf(1,"%d acquired the lock at time %d\n",getpid(), uptime());
                 if(ptype==2){
-                    sleep(2);
+                    sleep(200);
                 }
                 printf(1,"%d released the lock at time %d\n",getpid(), uptime());
                 if(ptype==1){

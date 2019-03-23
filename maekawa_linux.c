@@ -5,12 +5,13 @@
 #include<string.h> 
 #include<sys/wait.h> 
 #include<time.h>
+#include <math.h>
 // higher thread has higher priority
-#define P 9
-#define Psq 3
-#define P1 0
-#define P2 3
-#define P3 6
+// #define P 9
+// #define Psq 3
+// #define P1 0
+// #define P2 3
+// #define P3 6
 #define REQUEST 1
 #define REPLY 2
 #define RELEASE 3
@@ -26,7 +27,18 @@ return a;
 }
 int main(int argc, char *argv[])
 {
-    
+    int P=0;
+    int Psq=0;
+    int P1=0;
+    int P2=0;
+    int P3=0;
+    FILE* file = fopen ("assig2b.inp", "r");
+    fscanf (file, "%d", &P);
+    fscanf (file, "%d", &P1);
+    fscanf (file, "%d", &P2);
+    fscanf (file, "%d", &P3);
+    Psq =(int) sqrt((double) P);
+    fclose(file);
     int i,j;
     int numrow,numcol;
     //every pipe is incoming
