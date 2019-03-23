@@ -7,11 +7,11 @@
 #include <sys/types.h> 
 #include <unistd.h> 
 
-#define N 20
-#define E 0.00001
-#define T 100.0
-#define P 4
-#define L 20000
+// #define N 20
+// #define E 0.00001
+// #define T 100.0
+// #define P 4
+// #define L 20000
 
 float fabsm(float a){
 	if(a<0)
@@ -20,6 +20,18 @@ return a;
 }
 int main(int argc, char *argv[])
 {
+	int N=0;
+	float E=0;
+	float T=0;
+	int P=0;
+	int L=0;
+	FILE* file = fopen ("assig2a.inp", "r");
+	fscanf (file, "%d", &N);
+    fscanf (file, "%f", &E);
+    fscanf (file, "%f", &T);
+    fscanf (file, "%d", &P);
+    fscanf (file, "%d", &L);
+	fclose(file);
 	float diff;
 	int i,j;
 	float mean;

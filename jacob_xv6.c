@@ -3,19 +3,90 @@
 #include "user.h"
 
 
-#define N 11
-#define E 0.00001
-#define T 100.0
-#define P 6
-#define L 20000
+// #define N 11
+// #define E 0.00001
+// #define T 100.0
+// #define P 6
+// #define L 20000
 
 float fabsm(float a){
 	if(a<0)
 	return -1*a;
 return a;
 }
+float stof(char* s){
+  float rez = 0, fact = 1;
+  if (*s == '-'){
+    s++;
+    fact = -1;
+  };
+  for (int point_seen = 0; *s; s++){
+    if (*s == '.'){
+      point_seen = 1; 
+      continue;
+    };
+    int d = *s - '0';
+    if (d >= 0 && d <= 9){
+      if (point_seen) fact /= 10.0f;
+      rez = rez * 10.0f + (float)d;
+    };
+  };
+  return rez * fact;
+};
+
+float readfloat(int fdfile){
+    int maxsize=100;
+    // char arr[maxsize];
+    char * arr =(char *)malloc(sizeof(char)*maxsize);
+    float ans=0;
+    char c;
+    for(int i=0;i<maxsize;i++){
+        read(fdfile,&c,1);
+        if(c=='\n'){
+            arr[i]='\0';
+            break;
+        }
+        arr[i]=c;
+    }
+    // printf(1,"%s is what I read\n",arr);
+    ans = stof(arr);
+    // printf(1,"%d is ans\n",(int) (ans*1000000));
+    return ans;
+}
+int readint(int fdfile){
+    int maxsize=100;
+    char c;
+    int ans=0;
+    for(int i=0;i<maxsize;i++){
+        read(fdfile,&c,1);
+        if(c=='\n'){
+            break;
+        }
+        // printf(1,"%c is char\n",c);
+        int temp=c-'0';
+        // printf(1,"%d is temp\n",temp);
+        ans = 10*ans+temp;
+
+    }
+    return ans;
+}
 int main(int argc, char *argv[])
 {
+    int N=0;
+	float E=0;
+	float T=0;
+	// int P=0;
+	int L=0;
+    char * filename;
+    filename = "assig2a.inp";
+    int fdfile = open(filename,0);
+    N = readint(fdfile);
+    E = readfloat(fdfile);
+    T = readfloat(fdfile);
+    // P = readint(fdfile);
+    L = readint(fdfile);
+    // printf(1,"%d is N\n",N);
+    // exit();
 	float diff;
 	int i,j;
 	float mean;

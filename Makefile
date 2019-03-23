@@ -190,8 +190,8 @@ UPROGS=\
 	_maekawa_xv6\
 
 
-fs.img: mkfs README arr $(UPROGS)
-	./mkfs fs.img README arr $(UPROGS)
+fs.img: mkfs README arr assig2a.inp assig2b.inp $(UPROGS)
+	./mkfs fs.img README arr assig2a.inp assig2b.inp $(UPROGS)
 
 -include *.d
 
