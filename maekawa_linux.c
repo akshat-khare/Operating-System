@@ -350,10 +350,11 @@ int main(int argc, char *argv[])
             }
             if(mybool==1){
                 //I have all the grants
-                printf("%d acquired the lock at time %ld\n",getpid(), time(NULL));
+                printf("%d acquired the lock at time %ld.\n",getpid(), time(NULL));
                 if(ptype==2){
                     sleep(2);
                 }
+                printf("%d released the lock at time %ld.\n",getpid(), time(NULL));
                 if(ptype==1){
                     printf("fishy yes it is as type 1 has lock lol\n");
                 }
@@ -382,7 +383,6 @@ int main(int argc, char *argv[])
                 messagebuffer=1.0*RELEASE+10.0*tid;
                 write(fdpipes[tid][1],&messagebuffer, sizeof(messagebuffer));
                 // printf("%d has sent release signals to %d\n",tid,tid);
-                printf("%d released the lock at time %ld\n",getpid(), time(NULL));
                 messagebuffer=-1.0;
                 write(fdmasterpipes[2*tid+1][1], &messagebuffer,sizeof(messagebuffer));
             }

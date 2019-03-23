@@ -1,13 +1,13 @@
-// #include "types.h"
-// #include "stat.h"
-// #include "user.h"
+#include "types.h"
+#include "stat.h"
+#include "user.h"
 
-#include <stdio.h> 
-#include <stdlib.h>
-#include <sys/types.h> 
-#include <unistd.h> 
-#include<string.h> 
-#include<sys/wait.h> 
+// #include <stdio.h> 
+// #include <stdlib.h>
+// #include <sys/types.h> 
+// #include <unistd.h> 
+// #include<string.h> 
+// #include<sys/wait.h> 
 
 // #define N 20
 // #define E 0.00001
@@ -21,20 +21,78 @@ float fabsm(float a){
 	return -1*a;
 return a;
 }
+float stof(char* s){
+  float rez = 0, fact = 1;
+  if (*s == '-'){
+    s++;
+    fact = -1;
+  };
+  for (int point_seen = 0; *s; s++){
+    if (*s == '.'){
+      point_seen = 1; 
+      continue;
+    };
+    int d = *s - '0';
+    if (d >= 0 && d <= 9){
+      if (point_seen) fact /= 10.0f;
+      rez = rez * 10.0f + (float)d;
+    };
+  };
+  return rez * fact;
+};
+
+float readfloat(int fdfile){
+    int maxsize=100;
+    // char arr[maxsize];
+    char * arr =(char *)malloc(sizeof(char)*maxsize);
+    float ans=0;
+    char c;
+    for(int i=0;i<maxsize;i++){
+        read(fdfile,&c,1);
+        if(c=='\n'){
+            arr[i]='\0';
+            break;
+        }
+        arr[i]=c;
+    }
+    // printf(1,"%s is what I read\n",arr);
+    ans = stof(arr);
+    // printf(1,"%d is ans\n",(int) (ans*1000000));
+    return ans;
+}
+int readint(int fdfile){
+    int maxsize=100;
+    char c;
+    int ans=0;
+    for(int i=0;i<maxsize;i++){
+        read(fdfile,&c,1);
+        if(c=='\n'){
+            break;
+        }
+        // printf(1,"%c is char\n",c);
+        int temp=c-'0';
+        // printf(1,"%d is temp\n",temp);
+        ans = 10*ans+temp;
+
+    }
+    return ans;
+}
 int main(int argc, char *argv[])
 {
-	int N=0;
+    int N=0;
 	float E=0;
 	float T=0;
 	int P=0;
 	int L=0;
-	FILE* file = fopen ("assig2a.inp", "r");
-	fscanf (file, "%d", &N);
-    fscanf (file, "%f", &E);
-    fscanf (file, "%f", &T);
-    fscanf (file, "%d", &P);
-    fscanf (file, "%d", &L);
-	fclose(file);
+    char * filename;
+    filename = "assig2a.inp";
+    int fdfile = open(filename,0);
+    N = readint(fdfile);
+    E = readfloat(fdfile);
+    T = readfloat(fdfile);
+    P = readint(fdfile);
+    L = readint(fdfile);
+    close(fdfile);
 	float diff, tempdiff;
 	// float temp;
 	int i,j;
@@ -64,7 +122,7 @@ int main(int argc, char *argv[])
 	for(i=0;i<2*(P-1);i++){
 		if (pipe(fdpipes[i])==-1) 
 		{ 
-			fprintf(stderr, "Pipe Failed" ); 
+			printf(1,"Pipe Failed" ); 
 			return 1; 
     	} 
 	}
@@ -78,29 +136,29 @@ int main(int argc, char *argv[])
 	for(i=0;i<2*(P);i++){
 		if (pipe(fdmasterpipes[i])==-1) 
 		{ 
-			fprintf(stderr, "Pipe Failed" ); 
+			printf(1,"Pipe Failed" ); 
 			return 1; 
     	} 
 	}
-	// printf("Pipes made\n");
-	int masterpid = getpid();
+	// printf(1,"Pipes made\n");
+	// int masterpid = getpid();
 	int * childpidarr= (int *)malloc(sizeof(int)*P);
-	int childpid;
-	int tid;
+	int childpid=0;
+	int tid=0;
 	for(i=0;i<P;i++){		
 		childpid = fork();
 		if(childpid<0){
-			// printf("Fork failed\n");
-			fprintf(stderr, "Fork failed");
+			// printf(1,"Fork failed\n");
+			printf(1,"Fork failed");
 		}else if(childpid>0){
 			childpidarr[i] = childpid;			
 		}else{
-			// printf("setting child tid\n");
+			// printf(1,"setting child tid\n");
 			tid=i;
 			break;
 		}
 	}
-	// printf("all childs forked %d\n",childpid);
+	// printf(1,"all childs forked %d\n",childpid);
 	if(childpid==0){
 		start = 1 + tid*((N-2)/P);
 		if(tid==P-1){
@@ -108,20 +166,20 @@ int main(int argc, char *argv[])
 		}else{
 			end = 1 + (tid+1)*((N-2)/P) -1;
 		}
-		// printf("tid, start, end are %d %d %d\n",tid,start,end);
+		// printf(1,"tid, start, end are %d %d %d\n",tid,start,end);
 		for(;;){
 			// no ipc collect for iteration 1
-			// printf("count is %d\n",count);
+			// printf(1,"count is %d\n",count);
 			if(count!=0){
 				//get diff from master
-				// printf("%d expecting diff from master on pipe %d\n",tid, 2*tid);
+				// printf(1,"%d expecting diff from master on pipe %d\n",tid, 2*tid);
 				read(fdmasterpipes[2*tid][0],&diff, sizeof(diff));
-				// printf("%d got diff %.6f from master on pipe %d\n",tid,diff, 2*tid);
+				// printf(1,"%d got diff %.6f from master on pipe %d\n",tid,diff, 2*tid);
 				
 				// close the iterations 
 				if(diff<0){
 					// send u's to master
-					float temp;
+					// float temp;
 					for(i=start;i<=end;i++){
 						for(j=1;j<N-1;j++){
 							floatarrbuffer[j-1]=u[i][j];
@@ -147,7 +205,7 @@ int main(int argc, char *argv[])
 				//get u values from neighbours
 				if(tid>0){
 					//receive from upper
-					float temp;
+					// float temp;
 					int temppipe = tid-1;
 					int rownum =1+ tid*((N-2)/P) -1;
 					read(fdpipes[2*(temppipe)][0], floatarrbuffer, sizeof(float)*(N-2));
@@ -168,7 +226,7 @@ int main(int argc, char *argv[])
 				// }
 				if(tid<P-1){
 					//receive from down
-					float temp;
+					// float temp;
 					int temppipe = tid;
 					int rownum= 1 + (tid+1)*((N-2)/P);
 					read(fdpipes[2*(temppipe)+1][0], floatarrbuffer, (sizeof(float))*(N-2));
@@ -204,84 +262,59 @@ int main(int argc, char *argv[])
 			
 			
 			//send u values to neighbours
-			// printf("%d count %d computation is done\n",tid,count);
-			// if(tid>0){
-			// 	//send to upper
-			// 	float temp;
-			// 	int temppipe = tid-1;
-			// 	int rownum =1+ tid*((N-2)/P);
-			// 	// printf("%d sending row %d to upper neighbours\n",tid,rownum);
-
-			// 	for(i=1;i<N-1;i++){
-			// 		temp = u[rownum][i];
-			// 		write(fdpipes[2*(temppipe)+1][1], &temp, sizeof(temp));
-			// 	}
-
-			// 	// printf("%d sent row %d to upper neighbours\n",tid,rownum);
-			// }
+			// printf(1,"%d count %d computation is done\n",tid,count);
+			
 			if(tid>0){
 				//send to upper
-				float temp;
+				// float temp;
 				int temppipe = tid-1;
 				int rownum =1+ tid*((N-2)/P);
-				// printf("%d sending row %d to upper neighbours\n",tid,rownum);
+				// printf(1,"%d sending row %d to upper neighbours\n",tid,rownum);
 
 				for(i=1;i<N-1;i++){
 					floatarrbuffer[i-1] = u[rownum][i];
 				}
 				write(fdpipes[2*(temppipe)+1][1], floatarrbuffer, sizeof(float)*(N-2));
 
-				// printf("%d sent row %d to upper neighbours\n",tid,rownum);
+				// printf(1,"%d sent row %d to upper neighbours\n",tid,rownum);
 			}
-			// if(tid<P-1){
-			// 	//send to down
-			// 	float temp;
-			// 	int temppipe = tid;
-			// 	int rownum= 1 + (tid+1)*((N-2)/P) -1;
-			// 	// printf("%d sending row %d to down neighbours\n",tid,rownum);
-
-			// 	for(i=1;i<N-1;i++){
-			// 		temp = u[rownum][i];
-			// 		write(fdpipes[2*(temppipe)][1], &temp, sizeof(temp));
-			// 	}
-			// 	// printf("%d sent row %d to down neighbours\n",tid,rownum);
-			// }
+			
 			if(tid<P-1){
 				//send to down
-				float temp;
+				// float temp;
 				int temppipe = tid;
 				int rownum= 1 + (tid+1)*((N-2)/P) -1;
-				// printf("%d sending row %d to down neighbours\n",tid,rownum);
+				// printf(1,"%d sending row %d to down neighbours\n",tid,rownum);
 
 				for(i=1;i<N-1;i++){
 					floatarrbuffer[i-1] = u[rownum][i];
 				}
 				write(fdpipes[2*(temppipe)][1], floatarrbuffer, (sizeof(float))* (N-2));
-				// printf("%d sent row %d to down neighbours\n",tid,rownum);
+				// printf(1,"%d sent row %d to down neighbours\n",tid,rownum);
 			}
 			//send diff to master
-			// printf("%d sending diff %.6f to master on pipe %d\n",tid,diff, 2*tid+1);
+			// printf(1,"%d sending diff %.6f to master on pipe %d\n",tid,diff, 2*tid+1);
 			write(fdmasterpipes[2*tid+1][1],&diff,sizeof(diff));
 
 
 		}
 		//over
-		exit(0);
+		exit();
 	}else{
 		for(;;){
 			diff=0.0;
 			count++;
 			for(i=0;i<P;i++){
-				// printf("master receiving diff from %d on pipe %d\n",i, 2*i+1);
+				// printf(1,"master receiving diff from %d on pipe %d\n",i, 2*i+1);
 
 				read(fdmasterpipes[2*i+1][0],&tempdiff,sizeof(tempdiff));
-				// printf("master received diff %.6f from %d on pipe %d\n",tempdiff, i, 2*i+1);
+				// printf(1,"master received diff %.6f from %d on pipe %d\n",tempdiff, i, 2*i+1);
 				if(tempdiff>diff){
 					diff=tempdiff;
 				}
 			}
 			if(diff<= E || count > L){ 
-				// printf("------------------CONVERGED----------\n");
+				// printf(1,"------------------CONVERGED----------\n");
 				diff=-1.0;
 				for(i=0;i<P;i++){
 
@@ -298,7 +331,7 @@ int main(int argc, char *argv[])
 					for(i=start;i<=end;i++){
 						read(fdmasterpipes[2*tid+1][0],floatarrbuffer,(sizeof(float))* (N-2));
 						for(j=1;j<N-1;j++){
-							float temp;
+							// float temp;
 							u[i][j]=floatarrbuffer[j-1];
 						}
 					}
@@ -306,9 +339,9 @@ int main(int argc, char *argv[])
 				break;
 			}else{
 				for(i=0;i<P;i++){
-					// printf("master writing diff %.6f on tid %d on pipe %d\n",diff,i,2*i);
+					// printf(1,"master writing diff %.6f on tid %d on pipe %d\n",diff,i,2*i);
 					write(fdmasterpipes[2*i][1],&diff,sizeof(diff));
-					// printf("master written diff %.6f on tid %d on pipe %d\n",diff,i,2*i);
+					// printf(1,"master written diff %.6f on tid %d on pipe %d\n",diff,i,2*i);
 
 				}
 			}
@@ -316,17 +349,20 @@ int main(int argc, char *argv[])
 
 
 	}
-	// printf("count is %d\n",count);
+	// printf(1,"count is %d\n",count);
 	for(i =0; i <N; i++){
 		for(j = 0; j<N; j++)
-			printf("%d ",((int)u[i][j]));
-		printf("\n");
+			printf(1,"%d ",((int)u[i][j]));
+		printf(1,"\n");
 	}
 	// for(i =0; i <N; i++){
 	// 	for(j = 0; j<N; j++)
-	// 		printf("%.6f ",(u[i][j]));
-	// 	printf("\n");
+	// 		printf(1,"%.6f ",(u[i][j]));
+	// 	printf(1,"\n");
 	// }
-	exit(0);
+    for(i=0;i<P;i++){
+        wait();
+    }
+	exit();
 
 }
