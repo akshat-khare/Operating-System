@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
     int N=0;
 	float E=0;
 	float T=0;
-	// int P=0;
+	int P=0;
 	int L=0;
     char * filename;
     filename = "assig2a.inp";
@@ -83,8 +83,12 @@ int main(int argc, char *argv[])
     N = readint(fdfile);
     E = readfloat(fdfile);
     T = readfloat(fdfile);
-    // P = readint(fdfile);
+    P = readint(fdfile);
+    if(P==-1){
+        exit();
+    }
     L = readint(fdfile);
+    close(fdfile);
     // printf(1,"%d is N\n",N);
     // exit();
 	float diff;

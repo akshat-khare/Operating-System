@@ -9,11 +9,11 @@
 #include<string.h> 
 #include<sys/wait.h> 
 
-#define N 20
-#define E 0.00001
-#define T 100.0
-#define P 4
-#define L 20000
+// #define N 20
+// #define E 0.00001
+// #define T 100.0
+// #define P 4
+// #define L 20000
 
 
 float fabsm(float a){
@@ -23,6 +23,18 @@ return a;
 }
 int main(int argc, char *argv[])
 {
+	int N=0;
+	float E=0;
+	float T=0;
+	int P=0;
+	int L=0;
+	FILE* file = fopen ("assig2a.inp", "r");
+	fscanf (file, "%d", &N);
+    fscanf (file, "%f", &E);
+    fscanf (file, "%f", &T);
+    fscanf (file, "%d", &P);
+    fscanf (file, "%d", &L);
+	fclose(file);
 	float diff, tempdiff;
 	// float temp;
 	int i,j;
@@ -304,7 +316,7 @@ int main(int argc, char *argv[])
 
 
 	}
-	printf("count is %d\n",count);
+	// printf("count is %d\n",count);
 	for(i =0; i <N; i++){
 		for(j = 0; j<N; j++)
 			printf("%d ",((int)u[i][j]));

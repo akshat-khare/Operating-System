@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 		for (i =1; i< N-1; i++)	
 			for (j =1; j< N-1; j++) u[i][j] = w[i][j];
 	}
-	printf("count is %d\n",count);
+	// printf("count is %d\n",count);
 	for(i =0; i <N; i++){
 		for(j = 0; j<N; j++)
 			printf("%d ",((int)u[i][j]));
