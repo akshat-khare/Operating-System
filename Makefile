@@ -185,14 +185,9 @@ UPROGS=\
 	_send\
 	_recv\
 	_multicast\
-	_assig1_1\
-	_assig1_2\
-	_assig1_3\
-	_assig1_4\
-	_assig1_5\
-	_assig1_6\
-	_assig1_7\
-	_assig1_8\
+	_jacob_xv6\
+	_jacob_xv6_parallel\
+	_maekawa_xv6\
 
 
 fs.img: mkfs README arr $(UPROGS)
@@ -270,7 +265,7 @@ EXTRA=\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
-	assig1_1.c assig1_2.c assig1_3.c assig1_4.c assig1_5.c assig1_6.c assig1_7.c assig1_8\
+	jacob_xv6.c jacob_xv6_parallel.c maekawa_xv6.c\
 
 dist:
 	rm -rf dist
