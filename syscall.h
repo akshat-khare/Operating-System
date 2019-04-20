@@ -30,3 +30,7 @@
 #define SYS_registerhandler 29
 #define SYS_send_multi 30
 #define SYS_recvmulti 31
+#define SYS_samplecall 32
+#define SYS_create_container 33
+#define SYS_join_container 34
+#define SYS_scheduler_call 35

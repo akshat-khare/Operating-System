@@ -51,6 +51,14 @@ walkpgdir(pde_t *pgdir, const void *va, int alloc)
     // entries, if necessary.
     *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
   }
+  if(boolwritewalkpage==1){
+
+  cprintf("walkpgdir\n");
+  // cprintf("%d\n",(int)(*va));
+  // cprintf("%d\n",(int)*(pgtab[PTX(va)]));
+  cprintf("%d\n",(int)*pde);
+  }
+  // cprintf("walk\n");
   return &pgtab[PTX(va)];
 }
 
@@ -350,7 +358,6 @@ char*
 uva2ka(pde_t *pgdir, char *uva)
 {
   pte_t *pte;
-
   pte = walkpgdir(pgdir, uva, 0);
   if((*pte & PTE_P) == 0)
     return 0;

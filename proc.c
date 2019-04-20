@@ -335,13 +335,25 @@ scheduler(void)
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->state != RUNNABLE)
         continue;
-
+      // cprintf("ori history %d with sleep schedule%d state %d\n",(p-1)->pid,(p-1)->sleepschduled,(p-1)->state);
+      // cprintf("ori scheduling %d with sleep schedule%d state %d\n",p->pid,p->sleepschduled,p->state);
+      if(p->sleepschduled==1){
+        p->sleepschduled=0;
+        continue;
+      }
+      if(p->iscontainer==1){
+        p->containerjustcalled=1;
+      }
       // Switch to chosen process.  It is the process's job
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      // if(p->sleepschduled==1){
+      //   p->sleepschduled=0;
+      //   sleepcustom();
+      // }
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -567,6 +579,7 @@ int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];
 int free_message_buffer;
 int message_queue_head[NPROC];
 int message_queue_tail[NPROC];
+int boolwritewalkpage;
 // struct spinlock sendlock;
 struct{
   struct spinlock lock;
@@ -574,7 +587,7 @@ struct{
 void ipcstarter(void){
   // int* a[2];
   // cprintf("%d",a[3]);
-  // cprintf("fuck you---------------------------\n");
+  boolwritewalkpage=0;  
   initlock(&sendlock.lock,"send");
   for(int i=0;i<NUMBEROFMESSAGEBUFFERS-1;i++){
     message_buffer[i][0] = i+1;

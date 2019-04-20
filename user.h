@@ -33,6 +33,10 @@ int recv(char *);
 int registerhandler(int, int);
 int send_multi(int, int, int *, char*);
 int recvmulti(char *);
+int samplecall(void);
+int create_container(int);
+int join_container(int);
+int scheduler_call(void);
 
 
 // ulib.c

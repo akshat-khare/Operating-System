@@ -115,6 +115,10 @@ extern int sys_recv(void);
 extern int sys_registerhandler(void);
 extern int sys_send_multi(void);
 extern int sys_recvmulti(void);
+extern int sys_samplecall(void);
+extern int sys_create_container(void);
+extern int sys_join_container(void);
+extern int sys_scheduler_call(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -148,6 +152,10 @@ static int (*syscalls[])(void) = {
 [SYS_registerhandler] sys_registerhandler,
 [SYS_send_multi] sys_send_multi,
 [SYS_recvmulti] sys_recvmulti,
+[SYS_samplecall] sys_samplecall,
+[SYS_create_container] sys_create_container,
+[SYS_join_container] sys_join_container,
+[SYS_scheduler_call] sys_scheduler_call,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -182,6 +190,10 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_registerhandler",
   "sys_send_multi",
   "sys_recvmulti",
+  "sys_samplecall",
+  "sys_create_container",
+  "sys_join_container",
+  "sys_scheduler_call",
 };
 
 static int syscallctr[NELEM(syscalls)];

@@ -185,8 +185,9 @@ UPROGS=\
 	_send\
 	_recv\
 	_multicast\
-	_jacob\
-	_maekawa\
+	_assig1_7\
+	_samplerun\
+	_containerscript\
 
 
 fs.img: mkfs README assig2a.inp assig2b.inp $(UPROGS)
@@ -257,6 +258,7 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 EXTRA=\
 	send.c\
 	recv.c\
+	assig1_7\
 	printrunningprocess\
 	multicast.c\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
@@ -264,7 +266,8 @@ EXTRA=\
 	printf.c umalloc.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
-	jacob.c maekawa.c\
+	samplerun.c containerscript.c\
+
 
 dist:
 	rm -rf dist

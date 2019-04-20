@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "spinlock.h"
 
 int
 sys_fork(void)
@@ -45,6 +46,7 @@ sys_getpid(void)
 int
 sys_sbrk(void)
 {
+  // cprintf("sbrk called\n");
   int addr;
   int n;
 
@@ -181,8 +183,11 @@ int sys_recv(void){
   //   sleepcustom();
   //   return -1;
   // }
+  // cprintf("recv temp is %d\n",temp);
   while(temp==-1){
+    // cprintf("next instruction is sleep with temp %d\n",temp);
     sleepcustom();
+    // cprintf("this was executed after sleep with temp %d\n",temp);
     temp=popmessage(a);
   }
   // cprintf("now copying from buffer %d\n",temp);
@@ -248,4 +253,149 @@ int sys_recvmulti(void){
   }
   return 0;
 }
+extern struct {
+  struct spinlock lock;
+  struct proc proc[NPROC];
+} ptable;
+int sys_samplecall(void){
+  cprintf("been called\n");
+  boolwritewalkpage=1;
+  return 0;
+}
+int sys_create_container(void){
+  myproc()->iscontainer=1;
+  int a;
+  argint(0,&a);
+  myproc()->containerindex=a;
+  myproc()->numprocess=0;
+  myproc()->sleepschduled=0;
+  return 0;
+}
+int sys_join_container(void){
+  myproc()->isassignedcontainer=1;
+  int a;
+  argint(0,&a);
+  myproc()->containerassigned=a;
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->iscontainer == 1){
+      if(p->containerindex==a){
+        p->numprocess = p->numprocess+1;
+        break;
+      }
+    }
+  }
+  if(p==&ptable.proc[NPROC]){
+    cprintf("found no container to join to\n");
+    return -1;
+  }
+  sleepcustom();
+  return 0;
+}
+int sys_scheduler_call(void){
+  // cprintf("scheduling\n");
+  if(myproc()->iscontainer!=1){
+    // cprintf("not a container\n");
+    return -1;
+  }
+  if(myproc()->containerjustcalled==0){
+    return -1;
+  }
+  struct proc *p;
+  int containerindex=myproc()->containerindex;
+  int tempnumprocess=myproc()->numprocess;
+  if(tempnumprocess==0){
+    return -1;
+  }else if (tempnumprocess==1)
+  {
+    // cprintf("single process\n");
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->isassignedcontainer == 1){
+        if(p->containerassigned ==containerindex){
 
+          if(p->state==SLEEPING || p->sleepschduled==1){
+            // cprintf("waking single up %d whose state is %d\n",p->pid, p->state);
+            p->sleepschduled=0;
+            if(p->state==SLEEPING){
+              release(&ptable.lock);
+              wakeup(p);
+              acquire(&ptable.lock);
+            }
+            // cprintf("after waking up pid %d state is %d\n",p->pid,p->state);
+            break;
+          }
+        }
+      }
+    }
+    release(&ptable.lock);
+    myproc()->containerjustcalled=0;
+    return 0;
+  }else{
+    // cprintf("%d processes\n",tempnumprocess);
+    acquire(&ptable.lock);
+    int startset=0;
+    int schedset=0;
+    struct proc *p1=ptable.proc; //to be slept
+    struct proc *p2=ptable.proc;// to be waken up
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->isassignedcontainer == 1){
+        if(p->containerassigned ==containerindex){
+          // cprintf("pid %d state %d my state %d sleep schedule %d\n",p->pid,p->state, myproc()->state, p->sleepschduled);
+          if(startset==0){
+            if((p->state==RUNNABLE || p->state==RUNNING) && p->sleepschduled==0){
+              p1 = p;
+              startset=1;
+            }
+          }else if(startset==1){
+            if(p->state==SLEEPING || p->sleepschduled==1){
+              p2=p;
+              schedset=1;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if(startset==0 || schedset==0){
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->isassignedcontainer == 1){
+          if(p->containerassigned ==containerindex){
+            if(p->state==SLEEPING || p->sleepschduled==1){
+              p2=p;
+              schedset=1;
+              break;
+            }
+          }
+        }
+      }
+    }
+    if(schedset==0){
+      // cprintf("gotta sleep one\n");
+      p1->sleepschduled=1;
+      release(&ptable.lock);
+      return -1;
+    }else{
+      // cprintf("waking up %d whose state is %d\n",p2->pid, p2->state);
+      p2->sleepschduled=0;
+      if(p2->state==SLEEPING){
+        release(&ptable.lock);
+        wakeup(p2);
+        acquire(&ptable.lock);
+      }
+      // p2->state=RUNNABLE;
+      // cprintf("after waking up pid %d state is %d\n",p->pid,p->state);
+      if(startset==1 && p1->pid!=myproc()->pid){
+    // cprintf("Pid: %d State: %d Lock: %d\n",myproc()->pid,myproc()->state,ptable.lock);
+        // cprintf("sleeping %d whose state is %d\n",p1->pid,p1->state);
+        // sleep(p1, &ptable.lock);
+        // p1->state=SLEEPING;
+        p1->sleepschduled=1;
+      }
+      release(&ptable.lock);
+      myproc()->containerjustcalled=0;
+      return 0;
+
+    }
+  }
+}

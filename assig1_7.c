@@ -21,6 +21,7 @@ int main(void)
 		// This is parent
 		char *msg_child = (char *)malloc(MSGSIZE);
 		msg_child = "P";
+		sleep(400);
 		send(getpid(),cid,msg_child);	
 		printf(1,"1 PARENT: msg sent is: %s \n", msg_child );
 		
