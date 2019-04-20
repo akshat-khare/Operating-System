@@ -119,6 +119,8 @@ extern int sys_samplecall(void);
 extern int sys_create_container(void);
 extern int sys_join_container(void);
 extern int sys_scheduler_call(void);
+extern int sys_leave_container(void);
+extern int sys_destroy_container(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -156,6 +158,8 @@ static int (*syscalls[])(void) = {
 [SYS_create_container] sys_create_container,
 [SYS_join_container] sys_join_container,
 [SYS_scheduler_call] sys_scheduler_call,
+[SYS_leave_container] sys_leave_container,
+[SYS_destroy_container] sys_destroy_container,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -194,6 +198,8 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_create_container",
   "sys_join_container",
   "sys_scheduler_call",
+  "sys_leave_container",
+  "sys_destroy_container"
 };
 
 static int syscallctr[NELEM(syscalls)];

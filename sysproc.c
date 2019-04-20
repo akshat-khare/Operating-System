@@ -416,3 +416,52 @@ int sys_scheduler_call(void){
     }
   }
 }
+int sys_leave_container(void){
+  if(myproc()->isassignedcontainer!=1){
+    //not a container process
+    return -1;
+  }
+  acquire(&ptable.lock);
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->iscontainer == 1){
+      if(p->containerindex==myproc()->containerassigned){
+        p->numprocess = p->numprocess-1;
+        break;
+      }
+    }
+  }
+  release(&ptable.lock);
+
+  myproc()->sleepschduled=0;
+  myproc()->isassignedcontainer=0;
+  myproc()->containerassigned=-1;
+  return 0;
+}
+int sys_destroy_container(void){
+  int a;
+  argint(0,&a);
+  acquire(&ptable.lock);
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->iscontainer == 1){
+      if(p->containerindex==a){
+        // p->numprocess = p->numprocess-1;
+        break;
+      }
+    }
+  }
+  if(p==&ptable.proc[NPROC]){
+    //no such container
+    release(&ptable.lock);
+    cprintf("no such container\n");
+    return -1;
+  }
+  p->iscontainer=0;
+  p->numprocess=0;
+  p->containerindex=-1;
+  //register an interrupt to exit the 
+  release(&ptable.lock);
+  kill(p->pid);
+  return 0;
+}

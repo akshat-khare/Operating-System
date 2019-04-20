@@ -37,6 +37,8 @@ int samplecall(void);
 int create_container(int);
 int join_container(int);
 int scheduler_call(void);
+int leave_container(void);
+int destroy_container(int);
 
 
 // ulib.c

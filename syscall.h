@@ -34,3 +34,5 @@
 #define SYS_create_container 33
 #define SYS_join_container 34
 #define SYS_scheduler_call 35
+#define SYS_leave_container 36
+#define SYS_destroy_container 37
