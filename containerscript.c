@@ -1,11 +1,25 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
+int maxprocess=5;
 void schedulercustom(void){
+    int numprocess=2;
+    int * processstate=(int *)malloc(maxprocess*sizeof(int));
+    int * sleepschedule=(int *)malloc(maxprocess*sizeof(int));
     // int count=0;
+    // int numprocess=0;
+    // int * statusprocess=(int *)malloc(maxprocess*sizeof(int));
+    // samplecall(&numprocess,&statusprocess);
     for(;;){
+        registerState(&numprocess,processstate,sleepschedule);
         // printf(1,"scheduler\n");
+        // while
+        printf(1,"numprocess are %d\n",numprocess);
+        for(int i=0;i<numprocess;i++){
+            printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
+        }
         scheduler_call();
+        // printf(1, "size is %d\n")
         // count++;
         // if(count>100000){
         //     ps();
@@ -35,7 +49,7 @@ int main(void){
         for(;;){
             printf(1,"+");
             count++;
-            if(count>50){
+            if(count>500){
                 ps();
                 leave_container();
                 exit();
@@ -52,7 +66,7 @@ int main(void){
         for(;;){
             printf(1,"-");
             count++;
-            if(count>200){
+            if(count>2000){
                 leave_container();
                 destroy_container(1);
                 ps();

@@ -257,9 +257,28 @@ extern struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
+// int samplevar[1];
+// int * temp;
+
 int sys_samplecall(void){
-  cprintf("been called\n");
-  boolwritewalkpage=1;
+  // cprintf("been called\n");
+  // boolwritewalkpage=1;
+  // int 
+  // int * temp;
+  // cprintf("kerner temp initially %d\n",temp[0]);
+  // cprintf("kernel %d\n",samplevar[0]);
+  // argptr(1,(char **) &temp,4);
+  // cprintf("kerner temp %d\n",temp[3]);
+  // // samplevar[0]=temp[0];
+  // // cprintf("kernel %d\n",samplevar[0]);
+  // temp[3]=5;
+  // samplevar[0]=5;
+  // int *temp;
+  // argptr(0,(char**)&temp,4);
+  // *temp=5;
+  int *temp;
+  argptr(0,(char**) &temp,4);
+  *temp=5;
   return 0;
 }
 int sys_create_container(void){
@@ -291,6 +310,11 @@ int sys_join_container(void){
   }
   myproc()->sleepschduled=1;
   // sleepcustom();
+  // cprintf("pcontainerindex is %d\n",myproc()->containerassigned);
+  // cprintf("numprocess is %d\n",*(numprocess[0]));
+  // *(numprocess[myproc()->containerassigned-1])= *(numprocess[myproc()->containerassigned-1])+1;
+  // cprintf("numprocess is %d\n",*(numprocess[myproc()->containerassigned-1]));
+
   return 0;
 }
 int repeat;
@@ -463,5 +487,50 @@ int sys_destroy_container(void){
   //register an interrupt to exit the 
   release(&ptable.lock);
   kill(p->pid);
+  return 0;
+}
+int sys_registerState(void){
+  if(myproc()->iscontainer==0){
+    return -1;
+  }
+//   int *numprocess;
+// // int **processstates;
+// // int **sleepschedules;
+//   argptr(0, (char **) &(numprocess[myproc()->containerindex -1]),4) ;
+//   *(numprocess[myproc()->containerindex -1])=myproc()->numprocess;
+//   cprintf("numprocess registered is %d\n",*( numprocess[myproc()->containerindex -1]));
+  // cprintf("registered numprocess %d\n",)
+  // int relornot;
+  // argint(4,&relornot);
+  // if(relornot==0){
+
+  acquire(&ptable.lock);
+  // }
+  cprintf("\n starting -:");
+  int tempcontainerindex= myproc()->containerindex;
+  int *numprocess;
+  argptr(0, (char **) &numprocess,4);
+  *numprocess=myproc()->numprocess;
+  int * processstates;
+  argptr(1, (char **) &processstates, 4*(myproc()->numprocess));
+  int * sleepstates;
+  argptr(2, (char **) &sleepstates, 4*(myproc()->numprocess));
+  
+  int i=0;
+  struct proc *p;
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->isassignedcontainer == 1){
+      if(p->containerassigned==tempcontainerindex){
+        // p->numprocess = p->numprocess-1;
+        processstates[i]=(int) p->state;
+        sleepstates[i]=p->sleepschduled;
+      }
+    }
+  }
+  cprintf("-returning\n");
+  // if(relornot==1){
+  release(&ptable.lock);
+
+  // }
   return 0;
 }

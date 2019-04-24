@@ -36,3 +36,4 @@
 #define SYS_scheduler_call 35
 #define SYS_leave_container 36
 #define SYS_destroy_container 37
+#define SYS_registerState 38
