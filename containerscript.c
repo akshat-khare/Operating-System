@@ -17,12 +17,16 @@ void schedulercustom(void){
     int issyscalldone=0;
     int whichchildsyscalled=-1;
     for(;;){
+        printf(1,"&");
+        ps();
         registerState(1,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
         // printf(1,"scheduler\n");
         // while
         if(containerjustcalled==0){
+            // sleep(2);
             continue;
         }
+        printf(1,"*");
         // printf(1,"numprocess are %d\n",numprocess);
         // for(int i=0;i<numprocess;i++){
         //     printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
@@ -37,12 +41,14 @@ void schedulercustom(void){
             }
         }
         if(issyscalldone==1){
+            printf(1,"syscall by %d\n",whichchildsyscalled);
             if(typesyscall==1){
                 //ps
                 ps();
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
             }
+            containerjustcalled=0;
             registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
         }else{
 
@@ -139,7 +145,8 @@ int main(void){
         for(;;){
             printf(1,"+");
             count++;
-            if(count%20==0){
+            if(count%5==0){
+                printf(1, "doing sys\n");
                 registerSysCall(1);
                 int waittemp = -1;
                 while(waittemp==-1){

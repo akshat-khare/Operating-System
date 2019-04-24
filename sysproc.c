@@ -508,7 +508,7 @@ int sys_registerState(void){
   int tempcontainerindex= myproc()->containerindex;
   if(readorwrite==1){
 
-    acquire(&ptable.lock);
+    // acquire(&ptable.lock);
     // }
     // cprintf("\n starting -:");
     int *numprocess;
@@ -549,9 +549,9 @@ int sys_registerState(void){
     *containerjustcalledtemp=myproc()->containerjustcalled;
     // cprintf("-returning\n");
     // if(relornot==1){
-    release(&ptable.lock);
+    // release(&ptable.lock);
   }else if(readorwrite==2){
-    acquire(&ptable.lock);
+    // acquire(&ptable.lock);
     int *numprocesstemp;
     int *processstatetemp;
     int *sleepscheduletemp;
@@ -583,7 +583,7 @@ int sys_registerState(void){
       }
     }
     myproc()->containerjustcalled=*containerjustcalledtemp;
-    release(&ptable.lock);
+    // release(&ptable.lock);
   }
 
 
