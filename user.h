@@ -39,7 +39,9 @@ int join_container(int);
 int scheduler_call(void);
 int leave_container(void);
 int destroy_container(int);
-int registerState(int, int*, int*,int*, int*);
+int registerState(int, int*, int*,int*, int*, int*, int *);
+int registerSysCall(int);
+int getStatusSysCall(void);
 
 
 // ulib.c

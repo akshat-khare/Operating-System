@@ -122,6 +122,8 @@ extern int sys_scheduler_call(void);
 extern int sys_leave_container(void);
 extern int sys_destroy_container(void);
 extern int sys_registerState(void);
+extern int sys_registerSysCall(void);
+extern int sys_getStatusSysCall(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -162,6 +164,8 @@ static int (*syscalls[])(void) = {
 [SYS_leave_container] sys_leave_container,
 [SYS_destroy_container] sys_destroy_container,
 [SYS_registerState] sys_registerState,
+[SYS_registerSysCall] sys_registerSysCall,
+[SYS_getStatusSysCall] sys_getStatusSysCall,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -203,6 +207,7 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_leave_container",
   "sys_destroy_container",
   "sys_registerState",
+  "sys_getStatusSysCall",
 };
 
 static int syscallctr[NELEM(syscalls)];

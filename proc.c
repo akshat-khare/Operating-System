@@ -549,11 +549,14 @@ procdump(void)
   }
 }
 void printrunningprocess(void){
-  int iscontainerprocess=0;
+  int iscontainer=0;
   int containerindex=-1;
   if(myproc()->isassignedcontainer==1){
-    iscontainerprocess=1;
-    containerindex = myproc()->containerassigned;
+    return;
+  }
+  if(myproc()->iscontainer==1){
+    iscontainer=1;
+    containerindex=myproc()->containerindex;
   }
   struct proc *p;
   for(p=ptable.proc;p<&ptable.proc[NPROC];p++){
@@ -579,7 +582,7 @@ void printrunningprocess(void){
     // {
     //   cprintf("%d %s ZOMBIE\n",p->pid, p->name);
     // }
-    if(iscontainerprocess==1){
+    if(iscontainer==1){
       if(p->state!=UNUSED){
         if(p->isassignedcontainer==1){
           if(p->containerassigned!=containerindex){

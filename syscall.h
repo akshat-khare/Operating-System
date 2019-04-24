@@ -37,3 +37,5 @@
 #define SYS_leave_container 36
 #define SYS_destroy_container 37
 #define SYS_registerState 38
+#define SYS_registerSysCall 39
+#define SYS_getStatusSysCall 40

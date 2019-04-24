@@ -520,8 +520,13 @@ int sys_registerState(void){
     argptr(3, (char **) &sleepstates, 4*(myproc()->numprocess));
     int * containerjustcalledtemp;
     argptr(4, (char **)&containerjustcalledtemp, 4);
+    int * syscallping;
+    argptr(5, (char **) &syscallping, 4*(myproc()->numprocess));
+    int * typesyscall;
+    argptr(6, (char **) &typesyscall, 4);
     int i=0;
     struct proc *p;
+    int breaksyscall=0;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->isassignedcontainer == 1){
         if(p->containerassigned==tempcontainerindex){
@@ -529,9 +534,18 @@ int sys_registerState(void){
           processstates[i]=(int) p->state;
           sleepstates[i]=p->sleepschduled;
           p->sleepschduled=1;
+          syscallping[i]=0;
+          if(p->hasdonesyscall==1 && breaksyscall==0){
+            syscallping[i]=1;
+            *typesyscall = p->typesyscall;
+            breaksyscall=1;
+          }else{
+            syscallping[i]=0;
+          }
         }
       }
     }
+
     *containerjustcalledtemp=myproc()->containerjustcalled;
     // cprintf("-returning\n");
     // if(relornot==1){
@@ -542,16 +556,25 @@ int sys_registerState(void){
     int *processstatetemp;
     int *sleepscheduletemp;
     int *containerjustcalledtemp;
+    int *syscallping;
     argptr(1,(char **) &numprocesstemp,4);
     argptr(2,(char **)&processstatetemp,4* (*numprocesstemp));
     argptr(3,(char **)&sleepscheduletemp,4* (*numprocesstemp));
     argptr(4,(char **)&containerjustcalledtemp,4);
+    argptr(5,(char **)&syscallping,4* (*numprocesstemp));
     int piter=0;
     struct proc *p;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->isassignedcontainer == 1){
         if(p->containerassigned==tempcontainerindex){
           p->sleepschduled=sleepscheduletemp[piter];
+          if(p->hasdonesyscall==1){
+            if(syscallping[piter]==2){
+              p->hasdonesyscall=0;
+              p->typesyscall=-1;
+              p->isSysCallComplete=1;
+            }
+          }
           piter++;
           if(piter>=*numprocesstemp){
             break;
@@ -566,4 +589,21 @@ int sys_registerState(void){
 
   // }
   return 0;
+}
+
+int sys_registerSysCall(void){
+  myproc()->hasdonesyscall=1;
+  int a;
+  argint(0,&a);
+
+  myproc()->typesyscall=a;
+  myproc()->isSysCallComplete=0;
+  return 0;
+}
+int sys_getStatusSysCall(void){
+  if(myproc()->isSysCallComplete==1){
+    return 0;
+  }else{
+    return -1;
+  }
 }

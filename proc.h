@@ -33,6 +33,7 @@ struct context {
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+// enum syscalldone {PS};
 
 // Per-process state
 struct proc {
@@ -56,6 +57,9 @@ struct proc {
   int containerassigned;
   int sleepschduled;
   int containerjustcalled;
+  int hasdonesyscall;
+  int typesyscall;
+  int isSysCallComplete;
 };
 
 // Process memory is laid out contiguously, low addresses first:
