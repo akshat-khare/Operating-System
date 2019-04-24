@@ -3,10 +3,10 @@
 #include "user.h"
 int maxprocess=5;
 void schedulercustom(void){
-    int numprocess=2;
+    int numprocess=0;
     int * processstate=(int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
     int * sleepschedule=(int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
-    // int count=0;
+    int count=0;
     // int numprocess=0;
     // int * statusprocess=(int *)malloc(maxprocess*sizeof(int));
     // samplecall(&numprocess,&statusprocess);
@@ -17,16 +17,22 @@ void schedulercustom(void){
     int issyscalldone=0;
     int whichchildsyscalled=-1;
     for(;;){
-        printf(1,"&");
-        ps();
-        registerState(1,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
-        // printf(1,"scheduler\n");
-        // while
-        if(containerjustcalled==0){
-            // sleep(2);
+        count++;
+        // ps();
+        if(count%200==0){
+            // printf(1,"&");
+            // ps();
+            int res = registerState(1,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
+            // printf(1,"^");
+            if(res!=0){
+                printf(1,"error");
+            }
+            count=0;
+        }else{
             continue;
         }
-        printf(1,"*");
+        // printf(1,"scheduler\n");
+        // while
         // printf(1,"numprocess are %d\n",numprocess);
         // for(int i=0;i<numprocess;i++){
         //     printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
@@ -41,17 +47,21 @@ void schedulercustom(void){
             }
         }
         if(issyscalldone==1){
-            printf(1,"syscall by %d\n",whichchildsyscalled);
+            printf(1,"syscall by %d of type %d\n",whichchildsyscalled, typesyscall);
             if(typesyscall==1){
                 //ps
                 ps();
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
+                registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
             }
-            containerjustcalled=0;
-            registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
+            // containerjustcalled=0;
         }else{
-
+            if(containerjustcalled==0){
+                // sleep(2);
+                continue;
+            }
+            printf(1,"*");
             if(numprocess==0){
                 // do nothing maybe
             }else if(numprocess==1){
@@ -141,11 +151,42 @@ int main(void){
         join_container(1);
         // printf(1,"joined container\n");
         sleep(2);
-        int count =0;
+        // int count =0;
         for(;;){
             printf(1,"+");
+            // count++;
+            // if(count%500==0){
+            //     printf(1, "doing sys\n");
+            //     registerSysCall(1);
+            //     int waittemp = -1;
+            //     while(waittemp==-1){
+            //         printf(1,".");
+            //         waittemp=getStatusSysCall();
+            //     }
+            // //     leave_container();
+            // //     exit();
+            // }
+        }
+    }
+    pid = fork();
+    if(pid==0){
+        // printf(1,"trying joining\n");
+        join_container(1);
+        // printf(1,"joined container\n");
+        sleep(2);
+        int count =0;
+        for(;;){
+            printf(1,"-");
             count++;
-            if(count%5==0){
+            // if(count>2000){
+            //     leave_container();
+            //     destroy_container(1);
+            //     ps();
+            //     sleep(200);
+            //     ps();
+            //     exit();
+            // }
+            if(count%500==0){
                 printf(1, "doing sys\n");
                 registerSysCall(1);
                 int waittemp = -1;
@@ -158,26 +199,6 @@ int main(void){
             }
         }
     }
-    // pid = fork();
-    // if(pid==0){
-    //     // printf(1,"trying joining\n");
-    //     join_container(1);
-    //     // printf(1,"joined container\n");
-    //     sleep(2);
-    //     // int count =0;
-    //     for(;;){
-    //         printf(1,"-");
-    //         // count++;
-    //         // if(count>2000){
-    //         //     leave_container();
-    //         //     destroy_container(1);
-    //         //     ps();
-    //         //     sleep(200);
-    //         //     ps();
-    //         //     exit();
-    //         // }
-    //     }
-    // }
     for(;;){
 
     }

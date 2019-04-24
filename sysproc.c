@@ -288,6 +288,9 @@ int sys_create_container(void){
   myproc()->containerindex=a;
   myproc()->numprocess=0;
   myproc()->sleepschduled=0;
+  myproc()->isassignedcontainer=-1;
+  myproc()->containerassigned=-1;
+  myproc()->containerjustcalled=1;
   return 0;
 }
 int sys_join_container(void){
@@ -295,6 +298,9 @@ int sys_join_container(void){
   int a;
   argint(0,&a);
   myproc()->containerassigned=a;
+  myproc()->iscontainer=-1;
+  myproc()->containerindex=-1;
+  myproc()->containerjustcalled=1;
   struct proc *p;
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if(p->iscontainer == 1){
@@ -491,6 +497,7 @@ int sys_destroy_container(void){
 }
 int sys_registerState(void){
   if(myproc()->iscontainer==0){
+    cprintf("not a container\n");
     return -1;
   }
 //   int *numprocess;
@@ -507,8 +514,6 @@ int sys_registerState(void){
   argint(0,&readorwrite);
   int tempcontainerindex= myproc()->containerindex;
   if(readorwrite==1){
-
-    // acquire(&ptable.lock);
     // }
     // cprintf("\n starting -:");
     int *numprocess;
@@ -527,13 +532,14 @@ int sys_registerState(void){
     int i=0;
     struct proc *p;
     int breaksyscall=0;
+    acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->isassignedcontainer == 1){
         if(p->containerassigned==tempcontainerindex){
           // p->numprocess = p->numprocess-1;
           processstates[i]=(int) p->state;
           sleepstates[i]=p->sleepschduled;
-          p->sleepschduled=1;
+          // p->sleepschduled=1;
           syscallping[i]=0;
           if(p->hasdonesyscall==1 && breaksyscall==0){
             syscallping[i]=1;
@@ -542,16 +548,16 @@ int sys_registerState(void){
           }else{
             syscallping[i]=0;
           }
+          i++;
         }
       }
     }
+    release(&ptable.lock);
 
     *containerjustcalledtemp=myproc()->containerjustcalled;
     // cprintf("-returning\n");
     // if(relornot==1){
-    // release(&ptable.lock);
   }else if(readorwrite==2){
-    // acquire(&ptable.lock);
     int *numprocesstemp;
     int *processstatetemp;
     int *sleepscheduletemp;
@@ -563,6 +569,7 @@ int sys_registerState(void){
     argptr(4,(char **)&containerjustcalledtemp,4);
     argptr(5,(char **)&syscallping,4* (*numprocesstemp));
     int piter=0;
+    acquire(&ptable.lock);
     struct proc *p;
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->isassignedcontainer == 1){
@@ -583,11 +590,12 @@ int sys_registerState(void){
       }
     }
     myproc()->containerjustcalled=*containerjustcalledtemp;
-    // release(&ptable.lock);
+    release(&ptable.lock);
   }
 
 
   // }
+    // cprintf("#");
   return 0;
 }
 

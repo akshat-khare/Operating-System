@@ -319,12 +319,17 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+// int safesleepctr[NPROC];
 void
 scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
+  // for(int i=0;i<NPROC;i++){
+  //   safesleepctr[i]=0;
+  // }
+  // safesleepctr=0;
   
   for(;;){
     // Enable interrupts on this processor.
@@ -337,12 +342,33 @@ scheduler(void)
 
       // cprintf("ori scheduling %d with sleep schedule%d state %d\n",p->pid,p->sleepschduled,p->state);
       // }
-      if(p->state != RUNNABLE)
+      if(p->state != RUNNABLE){
+
         continue;
+      }
+      // cprintf("@");
       // cprintf("ori history %d with sleep schedule%d state %d\n",(p-1)->pid,(p-1)->sleepschduled,(p-1)->state);
-      if(p->sleepschduled==1){
-        // p->sleepschduled=0;
-        continue;
+      // if(p->safesleepctr>SAFESLEEP){
+      //   cprintf("\n\nsafesleep\n\n");
+      //   // p->sleepschduled=0;
+      //   p->safesleepctr=0;
+      // }else{
+
+      // }
+      if(p->isassignedcontainer==1){
+        if(p->safesleepctr>SAFESLEEP){
+          // cprintf("\n\nsafesleep\n\n");
+          // p->sleepschduled=0;
+          p->safesleepctr=0;
+        }else{
+
+          if(p->sleepschduled==1 && p->state != RUNNING){
+            // p->sleepschduled=0;
+            p->safesleepctr=p->safesleepctr+1;
+            continue;
+          }
+        }
+
       }
       if(p->iscontainer==1){
         // cprintf("scheduling container\n");
@@ -589,12 +615,12 @@ void printrunningprocess(void){
             continue;
           }
         }
-        cprintf("pid:%d name:%s\n", p->pid, p->name);
+        cprintf("pid:%d name:%s state:%d sleep:%d\n", p->pid, p->name, p->state, p->sleepschduled);
       }
     }else{
 
       if(p->state!=UNUSED){
-        cprintf("pid:%d name:%s\n", p->pid, p->name);
+        cprintf("pid:%d name:%s state %d sleep:%d\n", p->pid, p->name, p->state,p->sleepschduled);
       }
     }
   }

@@ -60,6 +60,7 @@ struct proc {
   int hasdonesyscall;
   int typesyscall;
   int isSysCallComplete;
+  int safesleepctr;
 };
 
 // Process memory is laid out contiguously, low addresses first:
