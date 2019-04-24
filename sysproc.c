@@ -503,33 +503,66 @@ int sys_registerState(void){
   // int relornot;
   // argint(4,&relornot);
   // if(relornot==0){
-
-  acquire(&ptable.lock);
-  // }
-  cprintf("\n starting -:");
+  int readorwrite;
+  argint(0,&readorwrite);
   int tempcontainerindex= myproc()->containerindex;
-  int *numprocess;
-  argptr(0, (char **) &numprocess,4);
-  *numprocess=myproc()->numprocess;
-  int * processstates;
-  argptr(1, (char **) &processstates, 4*(myproc()->numprocess));
-  int * sleepstates;
-  argptr(2, (char **) &sleepstates, 4*(myproc()->numprocess));
-  
-  int i=0;
-  struct proc *p;
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->isassignedcontainer == 1){
-      if(p->containerassigned==tempcontainerindex){
-        // p->numprocess = p->numprocess-1;
-        processstates[i]=(int) p->state;
-        sleepstates[i]=p->sleepschduled;
+  if(readorwrite==1){
+
+    acquire(&ptable.lock);
+    // }
+    // cprintf("\n starting -:");
+    int *numprocess;
+    argptr(1, (char **) &numprocess,4);
+    *numprocess=myproc()->numprocess;
+    int * processstates;
+    argptr(2, (char **) &processstates, 4*(myproc()->numprocess));
+    int * sleepstates;
+    argptr(3, (char **) &sleepstates, 4*(myproc()->numprocess));
+    int * containerjustcalledtemp;
+    argptr(4, (char **)&containerjustcalledtemp, 4);
+    int i=0;
+    struct proc *p;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->isassignedcontainer == 1){
+        if(p->containerassigned==tempcontainerindex){
+          // p->numprocess = p->numprocess-1;
+          processstates[i]=(int) p->state;
+          sleepstates[i]=p->sleepschduled;
+          p->sleepschduled=1;
+        }
       }
     }
+    *containerjustcalledtemp=myproc()->containerjustcalled;
+    // cprintf("-returning\n");
+    // if(relornot==1){
+    release(&ptable.lock);
+  }else if(readorwrite==2){
+    acquire(&ptable.lock);
+    int *numprocesstemp;
+    int *processstatetemp;
+    int *sleepscheduletemp;
+    int *containerjustcalledtemp;
+    argptr(1,(char **) &numprocesstemp,4);
+    argptr(2,(char **)&processstatetemp,4* (*numprocesstemp));
+    argptr(3,(char **)&sleepscheduletemp,4* (*numprocesstemp));
+    argptr(4,(char **)&containerjustcalledtemp,4);
+    int piter=0;
+    struct proc *p;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->isassignedcontainer == 1){
+        if(p->containerassigned==tempcontainerindex){
+          p->sleepschduled=sleepscheduletemp[piter];
+          piter++;
+          if(piter>=*numprocesstemp){
+            break;
+          }
+        }
+      }
+    }
+    myproc()->containerjustcalled=*containerjustcalledtemp;
+    release(&ptable.lock);
   }
-  cprintf("-returning\n");
-  // if(relornot==1){
-  release(&ptable.lock);
+
 
   // }
   return 0;
