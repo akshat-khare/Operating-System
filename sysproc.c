@@ -583,6 +583,20 @@ int sys_registerState(void){
               for(int i=0;i<30;i++){
                 bufchartemp[i]=p->bufchar[i];
               }
+            }else if(typesyscalltemp==MALLOC){
+              int * bufchartemp;
+              argptr(10,(char **) &bufchartemp,4);
+              *bufchartemp=p->mallocbuf;
+            }else if(typesyscalltemp==MALLOC_WRITE){
+              int * bufchartemp;
+              argptr(9,(char **) &bufchartemp,4);
+              *bufchartemp=p->mallocaddr;
+              argptr(10,(char **) &bufchartemp,4);
+              *bufchartemp=p->mallocbuf;
+            }else if(typesyscalltemp==MALLOC_READ){
+              int * bufchartemp;
+              argptr(9,(char **) &bufchartemp,4);
+              *bufchartemp=p->mallocaddr;
             }
             breaksyscall=1;
           }else{
@@ -634,6 +648,16 @@ int sys_registerState(void){
                 //nothing
               }else if(typesyscall==CAT){
                 //nothing
+              }else if(typesyscall==MALLOC){
+                int* mallocadd;
+                argptr(9,(char **)&mallocadd,4);
+
+                p->mallocaddr=*mallocadd;
+              }else if(typesyscall==MALLOC_READ){
+                int* mallocbuf;
+                argptr(10,(char **)&mallocbuf,4);
+
+                p->mallocbuf=*mallocbuf;
               }
               p->hasdonesyscall=0;
               p->typesyscall=-1;
@@ -694,4 +718,51 @@ int sys_cat_sys(void){
   }
 
   return 0;
+}
+int sys_ls_sys(void){
+  myproc()->hasdonesyscall=1;
+  myproc()->typesyscall=LS;
+  myproc()->isSysCallComplete=0;
+  return 0;
+}
+int sys_malloc_sys(void){
+  myproc()->hasdonesyscall=1;
+  myproc()->typesyscall=MALLOC;
+  myproc()->isSysCallComplete=0;
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  myproc()->mallocbuf=*temp;
+  return 0;
+}
+int sys_getmallocaddr_sys(void){
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  *temp=myproc()->mallocaddr;
+  return 0;
+}
+int sys_writemalloc_sys(void){
+  myproc()->hasdonesyscall=1;
+  myproc()->typesyscall=MALLOC_WRITE;
+  myproc()->isSysCallComplete=0;
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  myproc()->mallocaddr=*temp;
+  argptr(1,(char **)&temp,4);
+  myproc()->mallocbuf=*temp;
+  return 0;
+}
+int sys_readmalloc_sys(void){
+  myproc()->hasdonesyscall=1;
+  myproc()->typesyscall=MALLOC_READ;
+  myproc()->isSysCallComplete=0;
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  myproc()->mallocaddr=*temp;
+  return 0;
+}
+int sys_readvalmalloc_sys(void){
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  *temp=myproc()->mallocbuf;
+  return 0;  
 }

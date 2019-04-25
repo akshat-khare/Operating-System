@@ -126,6 +126,12 @@ extern int sys_registerSysCall(void);
 extern int sys_getStatusSysCall(void);
 extern int sys_getfd(void);
 extern int sys_cat_sys(void);
+extern int sys_ls_sys(void);
+extern int sys_malloc_sys(void);
+extern int sys_getmallocaddr_sys(void);
+extern int sys_writemalloc_sys(void);
+extern int sys_readmalloc_sys(void);
+extern int sys_readvalmalloc_sys(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -170,6 +176,13 @@ static int (*syscalls[])(void) = {
 [SYS_getStatusSysCall] sys_getStatusSysCall,
 [SYS_getfd] sys_getfd,
 [SYS_cat_sys] sys_cat_sys,
+[SYS_ls_sys] sys_ls_sys,
+[SYS_malloc_sys] sys_malloc_sys,
+[SYS_getmallocaddr_sys] sys_getmallocaddr_sys,
+[SYS_writemalloc_sys] sys_writemalloc_sys,
+[SYS_readmalloc_sys] sys_readmalloc_sys,
+[SYS_readvalmalloc_sys] sys_readvalmalloc_sys,
+
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -214,6 +227,13 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_getStatusSysCall",
   "sys_getfd",
   "sys_cat_sys",
+  "sys_ls_sys",
+  "sys_malloc_sys",
+  "sys_getmallocaddr_sys",
+  "sys_writemalloc_sys",
+  "sys_readmalloc_sys",
+  "sys_readvalmalloc_sys",
+
 };
 
 static int syscallctr[NELEM(syscalls)];

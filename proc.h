@@ -62,6 +62,8 @@ struct proc {
   int safesleepctr;
   char bufchar[30];
   int fd;
+  int mallocaddr;
+  int mallocbuf;
 };
 
 // Process memory is laid out contiguously, low addresses first:

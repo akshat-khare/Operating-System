@@ -39,11 +39,17 @@ int join_container(int);
 int scheduler_call(void);
 int leave_container(void);
 int destroy_container(int);
-int registerState(int, int*, int*,int*, int*, int*, int *,char *,int *);
+int registerState(int, int*, int*,int*, int*, int*, int *,char *,int *, int*, int*);
 int registerSysCall(int);
 int getStatusSysCall(void);
 int getfd(int*);
 int cat_sys(char*);
+int ls_sys(void);
+int malloc_sys(int *);
+int getmallocaddr_sys(int *);
+int writemalloc_sys(int *, int *);
+int readmalloc_sys(int *);
+int readvalmalloc_sys(int *);
 
 
 // ulib.c

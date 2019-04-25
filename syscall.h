@@ -41,3 +41,10 @@
 #define SYS_getStatusSysCall 40
 #define SYS_getfd 41
 #define SYS_cat_sys 42
+#define SYS_ls_sys 43
+#define SYS_malloc_sys 44
+#define SYS_getmallocaddr_sys 45
+#define SYS_writemalloc_sys 46
+#define SYS_readmalloc_sys 47
+#define SYS_readvalmalloc_sys 48
+
