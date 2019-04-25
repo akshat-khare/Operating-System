@@ -184,7 +184,6 @@ static int (*syscalls[])(void) = {
 [SYS_readmalloc_sys] sys_readmalloc_sys,
 [SYS_readvalmalloc_sys] sys_readvalmalloc_sys,
 [SYS_toggle_log] sys_toggle_log,
-
 };
 
 const char *syscallstr[NELEM(syscalls)]= {

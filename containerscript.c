@@ -47,7 +47,7 @@ get_filename(char* bufcharme, int cid) {
     for (int i = 0; i < 30; i++) {
         actualfilename[num_digits+i+2] = bufcharme[i];
     }
-    printf(1,"Actual file %s\n", actualfilename);
+    // printf(1,"Actual file %s\n", actualfilename);
     return actualfilename;
 }
 
@@ -114,7 +114,7 @@ fmtname(char *path)
 }
 
 void
-ls(char *path)
+ls(char *path, int cid)
 {
   char buf[512], *p;
   int fd;
@@ -156,9 +156,20 @@ ls(char *path)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
-    //   if(fmtname(buf)[0]=='R'){
-    //       continue;
-    //   }
+      char* filename = fmtname(buf);
+      if(filename[0]=='#'){
+          int id = 0;
+          for (int i = 1; i < 10; i++) {
+              if (filename[i] == '#') {
+                  break;
+              } else {
+                  int d = filename[i]-48;
+                  id = id*10+d;
+              }
+          }
+          if (id != cid)
+              continue;
+      }
       printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }
     break;
@@ -282,7 +293,7 @@ void schedulercustom(int cid){
                 printf(1, "\n");
                 
             }else if(typesyscall==LS){
-                ls(".");
+                ls(".", cid);
        
             }else if(typesyscall==MALLOC){
                 // printf(1,"malloc encountered %d\n",mallocbuf);
@@ -424,12 +435,16 @@ int main(void){
         join_container(1);
         // printf(1,"----------joined container-------\n");
         sleep(20);
-        registerSysCall(PS);
-        int waitps=-1;
-        while(waitps==-1){
-            waitps=getStatusSysCall();
-        }
+        // ps();
+        // int waittemp = -1;
+        // while(waittemp==-1){
+        //     waittemp=getStatusSysCall();
+        // }
         ls_sys();
+        int waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
 
         char * buftempproc=(char*)malloc(30*sizeof(char));
         strcpy(buftempproc,"file_");
@@ -438,7 +453,6 @@ int main(void){
         // write(0,buftempproc,30);
         // cat_sys(buftempproc);
         // printf(1,"write cat registered\n");
-        int waittemp = -1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
@@ -457,7 +471,12 @@ int main(void){
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
-        close(fd);
+        // close(fd);
+        // waittemp=-1;
+        // while(waittemp==-1){
+        //     waittemp=getStatusSysCall();
+        // }
+        ls_sys();
         waittemp=-1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
