@@ -423,73 +423,16 @@ int main(void){
         // printf(1,"trying joining\n");
         join_container(1);
         // printf(1,"----------joined container-------\n");
-        sleep(200);
+        sleep(20);
         registerSysCall(PS);
         int waitps=-1;
         while(waitps==-1){
             waitps=getStatusSysCall();
         }
+        ls_sys();
 
-        // int waittemp=-1;
-        // int count =0;
-        // int fd=-1;
-        // char * buftempproc=(char*)malloc(30*sizeof(char));
-        // // char buftempproc[30];
-        // strcpy(buftempproc,"README");
-        // open("myfile",O_RDONLY);
-        // write(0,buftempproc,30);
-        // cat_sys(buftempproc);
-        // ls_sys();
-        // int tempmalbuf=1;
-        // int tempmaladdr=-1;
-        // printf(1,"doing malloc asking for %d \n",tempmalbuf);
-        // malloc_sys(&tempmalbuf);
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // getmallocaddr_sys(&tempmaladdr);
-        // printf(1, "got address %d\n", tempmaladdr);
-
-        // tempmalbuf=4;
-        // printf(1, "writing on address %d value %d\n",tempmaladdr,tempmalbuf);
-        // writemalloc_sys(&tempmaladdr,&tempmalbuf);
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // printf(1, "reading from address %d\n",tempmaladdr);
-        // readmalloc_sys(&tempmaladdr);
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // readvalmalloc_sys(&tempmalbuf);
-        // printf(1, "value at address %d was %d\n",tempmaladdr, tempmalbuf);
-
-
-        // int tempmal2=4;
-        // readmalloc_sys(&tempmal);
-        // printf(1," malloc read registered\n");
-        // int waittemp = -1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // readvalmalloc_sys(&tempmal);
-        // printf(1,"done waiting for answer %d\n",tempmal);
-        // getfd(&fd);
-        // printf(1,"fd found %d\n",fd);
-        // char mywrite[30];
-        // strcpy(mywrite,"hi\0");
-        // write(fd,&mywrite,sizeof(char)*30);
-        // waittemp=-1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // cat_sys("myfile");
-        // waittemp=-1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
         char * buftempproc=(char*)malloc(30*sizeof(char));
-        strcpy(buftempproc,"README");
+        strcpy(buftempproc,"file_");
         // printf(1,"doing cat \n");
         int fd = open("myfile",O_CREATE | O_RDWR);
         // write(0,buftempproc,30);
