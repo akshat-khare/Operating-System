@@ -192,7 +192,7 @@ void schedulercustom(int cid){
     int * syscallping = (int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
     int typesyscall = -1;
     int issyscalldone=0;
-    // int whichchildsyscalled=-1;
+    int whichchildsyscalled=-1;
     for(;;){
         count++;
         // ps();
@@ -215,11 +215,11 @@ void schedulercustom(int cid){
         //     printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
         // }
         issyscalldone=0;
-        // whichchildsyscalled=-1;
+        whichchildsyscalled=-1;
         for(int i=0;i<numprocess;i++){
             if(syscallping[i]==1){
                 issyscalldone=1;
-                // whichchildsyscalled=i;
+                whichchildsyscalled=i;
                 break;
             }
         }
@@ -303,7 +303,10 @@ void schedulercustom(int cid){
                 strcpy(realname[fdarg], "#nofilehere#");
                 strcpy(virtualname[fdarg], "#nofilehere#");
             }
-            
+            syscallping[whichchildsyscalled]=2;
+            typesyscall=-1;
+            registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg,&mallocaddr,&mallocbuf, &togglelog);
+   
   
             // containerjustcalled=0;
         }else{
@@ -420,12 +423,12 @@ int main(void){
         // printf(1,"trying joining\n");
         join_container(1);
         // printf(1,"----------joined container-------\n");
-        // sleep(200);
-        // registerSysCall(PS);
-        // int waitps=-1;
-        // while(waitps==-1){
-        //     waitps=getStatusSysCall();
-        // }
+        sleep(200);
+        registerSysCall(PS);
+        int waitps=-1;
+        while(waitps==-1){
+            waitps=getStatusSysCall();
+        }
 
         // int waittemp=-1;
         // int count =0;
