@@ -575,9 +575,9 @@ int sys_registerState(void){
                 bufchartemp[i]=p->bufchar[i];
               }
             }else if(typesyscalltemp==WRITE){
-              cprintf("kernel write encountered\n");
               char * bufchartemp;
               argptr(7,(char **) &bufchartemp,sizeof(char)*30);
+              cprintf("kernel write encountered: %s\n", bufchartemp);
               for(int i=0;i<30;i++){
                 bufchartemp[i]=p->bufchar[i];
               }
@@ -648,6 +648,7 @@ int sys_registerState(void){
                 argptr(8,(char **)&fdargme,4);
 
                 p->fd=*fdargme;
+                cprintf("Process fd: %d\n", p->fd);
 
               }else if(typesyscall==OPEN){
                 int* fdargme;
@@ -714,6 +715,7 @@ int sys_getfd(void){
   int *temp;
   argptr(0,(char **)&temp,4);
   *temp=myproc()->fd;
+  cprintf("Proc fd in getfd: %d\n", myproc()->fd);
   return 0;
 }
 int sys_cat_sys(void){

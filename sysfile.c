@@ -86,26 +86,29 @@ sys_write(void)
   char *p;
 
 
-    argint(2, &n);
-    // cprintf("n is %d\n",n);
+  argint(2, &n);
+  if(myproc()->isassignedcontainer==1 && n==30){
     // cprintf("I am writing\n");
     argptr(1, &p, n);
-  if(myproc()->isassignedcontainer==1 && n==30){
+    cprintf("n is %d\n",n);
     int fdme;
     argint(0,&fdme);
     // strcpy(containerbuf,p);
     myproc()->hasdonesyscall=1;
     myproc()->isSysCallComplete=0;
     myproc()->typesyscall=WRITE;
+    char* temp_msg = p;
     for(int i=0;i<30;i++){
-      myproc()->bufchar[i]=p[i];
+      myproc()->bufchar[i] = *temp_msg;
+      temp_msg++;
     }
     myproc()->fd=fdme;
+    cprintf("write is using fd %d: %s %s\n",fdme, myproc()->bufchar, p);
     return 0;
-  }else{
-    if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
-      return -1;
   }
+
+  if(argfd(0, 0, &f) < 0 || argptr(1, &p, n) < 0)
+    return -1;
   return filewrite(f, p, n);
 }
 
