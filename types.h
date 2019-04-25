@@ -17,4 +17,4 @@ extern int message_queue_tail[NPROC];
 extern int sigchild[NPROC];
 extern MessageBuffer multibuffer;
 extern int boolwritewalkpage;
-enum syscalldid {PS,CREATE,OPEN,WRITE,CAT};
+enum syscalldid {PS,CREATE,OPEN,WRITE,CAT,CLOSE};

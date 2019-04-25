@@ -41,3 +41,4 @@
 #define SYS_getStatusSysCall 40
 #define SYS_getfd 41
 #define SYS_cat_sys 42
+#define SYS_getcid 43

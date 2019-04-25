@@ -44,7 +44,7 @@ int registerSysCall(int);
 int getStatusSysCall(void);
 int getfd(int*);
 int cat_sys(char*);
-
+int getcid(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

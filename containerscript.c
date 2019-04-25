@@ -3,7 +3,80 @@
 #include "user.h"
 #include "fs.h"
 #include "fcntl.h"
+
+#define MAXSTRLEN 30
+// #define MAXCONTFILE 40
+
 char bufcat[512];
+char realname[MAXFILE][MAXSTRLEN];
+char virtualname[MAXFILE][MAXSTRLEN];
+int mappings[MAXFILE];
+
+int maxprocess=5;
+int pointer = 0;
+
+char* 
+itoa(int num, int* digits) 
+{
+	// Convert number to string
+	char *sum = (char *)malloc(MSGSIZE);
+	int tsum = num, ch = -1;
+	while(tsum > 0) {
+		ch++;
+		tsum = tsum / 10;
+	}
+    *digits = ch+1;
+	tsum = num;
+	while(tsum > 0) {
+		int dig = tsum % 10;
+		sum[ch--] = dig + '0';
+		tsum = tsum / 10;
+	}
+	return sum;
+}
+
+char*
+get_filename(char* bufcharme, int cid) {
+    int num_digits = 0; 
+    char * cidstr = itoa(cid, &num_digits);
+    char * actualfilename = (char *)malloc(40*sizeof(char));
+    actualfilename[0] = '#';
+    for (int i = 0; i < num_digits; i++) {
+        actualfilename[i+1] = cidstr[i];
+    }
+    actualfilename[num_digits+1] = '#';
+    for (int i = 0; i < 30; i++) {
+        actualfilename[num_digits+i+2] = bufcharme[i];
+    }
+    printf(1,"Actual file %s\n", actualfilename);
+    return actualfilename;
+}
+
+int
+get_index(char* name) {
+    int index = -1;
+    for (int i = 0; i < MAXFILE; i++) {
+        if (strcmp(virtualname[i], name) == 0) {
+            index = i;
+            break;
+        }
+    }
+    return index;
+}
+
+void
+move_ptr() {
+    int flag = 0;
+    for (int i = pointer+1; i != pointer; i = (i+1)%MAXFILE) {
+        if (mappings[i] == 0) {
+            pointer = i;
+            flag = 1;
+            break;
+        }
+    }
+    if (flag == 0)
+        pointer = -1;
+}
 
 void
 cat(int fd)
@@ -93,13 +166,8 @@ ls(char *path)
   }
   close(fd);
 }
-int maxprocess=5;
-// #define MAXSTRLEN 30
-// #define MAXFILE 40
-// char realname[MAXFILE][MAXSTRLEN];
-// char virtualname[MAXFILE][MAXSTRLEN];
 
-void schedulercustom(void){
+void schedulercustom(int cid){
     int numprocess=0;
     int * processstate=(int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
     int * sleepschedule=(int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
@@ -155,35 +223,77 @@ void schedulercustom(void){
                 registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
             }else if(typesyscall==CREATE){
                 printf(1,"create encountered %s\n",bufcharme);
-
                 fdarg=0;
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
+                char* actualname = get_filename(bufcharme, cid);
+                strcpy(realname[pointer], actualname);
+                strcpy(virtualname[pointer], bufcharme);
+                printf(1, "Creating real filename %s\n", actualname);
+                mappings[pointer] = open(actualname, O_CREATE | O_RDWR);
+                fdarg = pointer;
+                printf(1, "Real address: %d and returning virtual address %d\n", mappings[pointer], fdarg);
+                move_ptr();
                 registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
-
             }else if(typesyscall==OPEN){
                 printf(1,"open encountered %s\n",bufcharme);
                 fdarg=0;
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
+                int index = get_index(bufcharme);
+                if (index == -1) {
+                    // File not open yet
+                    printf(1, "Opening real filename %s\n", bufcharme);
+                    int afid = open(bufcharme, fdarg);
+                    mappings[pointer] = afid;
+                    strcpy(virtualname[pointer], bufcharme);
+                    strcpy(realname[pointer], bufcharme);
+                    fdarg = pointer;
+                    // Move pointer to next empty space
+                    move_ptr();
+                } else {
+                    // File already open
+                    fdarg = index;
+                }
+                printf(1, "Returning virtual address %d\n", fdarg);
                 registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
-
-
             }else if(typesyscall==WRITE){
                 printf(1,"write encountered %s\n",bufcharme);
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
+                if (strcmp(virtualname[fdarg], realname[fdarg]) == 0) {
+                    // It was an existing file. Make new file (COW)
+                    char* actualname = get_filename(virtualname[fdarg], cid);
+                    strcpy(realname[fdarg], actualname);
+                    int cow_fid = dup(mappings[fdarg]);
+                    // Copied (duplicated) the file. Now write
+                    printf(1, "Duplicating : Writing into file at id %d\n", cow_fid);
+                    write(cow_fid, bufcharme, 30*sizeof(char));
+                    mappings[fdarg] = cow_fid;
+                } else {
+                    int actualfid = mappings[fdarg];
+                    printf(1, "Writing into file at id %d\n", actualfid);
+                    write(actualfid, bufcharme, 30*sizeof(char));
+                }
                 registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
-
-
             }else if(typesyscall==CAT){
                 printf(1,"cat encountered %s\n",bufcharme);
-                int fdr = open(bufcharme,O_RDONLY);
+                char* actualname = get_filename(bufcharme, cid);
+                int fdr = open(actualname,O_RDONLY);
                 cat(fdr);
+                printf(1, "\n");
                 syscallping[whichchildsyscalled]=2;
                 typesyscall=-1;
                 registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
-                
+            }else if(typesyscall==CLOSE){
+                printf(1,"close encountered %d, closing %d\n", fdarg, mappings[fdarg]);
+                close(mappings[fdarg]);
+                mappings[fdarg] = 0;
+                strcpy(realname[fdarg], "#nofilehere#");
+                strcpy(virtualname[fdarg], "#nofilehere#");
+                syscallping[whichchildsyscalled]=2;
+                typesyscall=-1;
+                registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg);
             }
             // containerjustcalled=0;
         }else{
@@ -271,7 +381,7 @@ int main(void){
     pid =fork();
     if(pid==0){
         create_container(numcontainer);
-        schedulercustom();
+        schedulercustom(numcontainer);
     }else{
         numcontainer++;
 
@@ -302,30 +412,35 @@ int main(void){
         char * buftempproc=(char*)malloc(30*sizeof(char));
         // // char buftempproc[30];
         strcpy(buftempproc,"README");
-        printf(1,"doing cat \n");
-        // open("myfile",O_RDONLY);
+        // printf(1,"doing cat \n");
+        int fd = open("myfile",O_CREATE | O_RDWR);
         // write(0,buftempproc,30);
-        cat_sys(buftempproc);
-        printf(1,"write cat registered\n");
+        // cat_sys(buftempproc);
+        // printf(1,"write cat registered\n");
         int waittemp = -1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
         printf(1,"done waiting for answer\n");
-        // getfd(&fd);
-        // printf(1,"fd found %d\n",fd);
-        // char mywrite[30];
-        // strcpy(mywrite,"hi\0");
-        // write(fd,&mywrite,sizeof(char)*30);
-        // waittemp=-1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
-        // cat_sys("myfile");
-        // waittemp=-1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
+        getfd(&fd);
+        printf(1,"fd found %d\n",fd);
+        char mywrite[30];
+        strcpy(mywrite,"hi\0");
+        write(fd,&mywrite,sizeof(char)*30);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        cat_sys("myfile");
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        close(fd);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
         for(;;){
             // printf(1,"$1_1$\n");
             // count++;

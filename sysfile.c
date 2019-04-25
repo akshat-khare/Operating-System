@@ -115,6 +115,17 @@ sys_close(void)
   int fd;
   struct file *f;
 
+  if(myproc()->isassignedcontainer==1){
+    int fdme;
+    argint(0,&fdme);
+    // strcpy(containerbuf,p);
+    myproc()->hasdonesyscall=1;
+    myproc()->isSysCallComplete=0;
+    myproc()->typesyscall=CLOSE;
+    myproc()->fd=fdme;
+    return 0;
+  }
+
   if(argfd(0, &fd, &f) < 0)
     return -1;
   myproc()->ofile[fd] = 0;
