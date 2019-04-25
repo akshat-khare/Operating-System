@@ -571,6 +571,7 @@ int sys_registerState(void){
     int piter=0;
     acquire(&ptable.lock);
     struct proc *p;
+    // cprintf("writing\n");
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if(p->isassignedcontainer == 1){
         if(p->containerassigned==tempcontainerindex){
@@ -582,6 +583,7 @@ int sys_registerState(void){
               p->isSysCallComplete=1;
             }
           }
+          // cprintf("pid %d sleep %d\n",p->pid,p->sleepschduled);
           piter++;
           if(piter>=*numprocesstemp){
             break;
@@ -589,6 +591,7 @@ int sys_registerState(void){
         }
       }
     }
+    // cprintf("\n");
     myproc()->containerjustcalled=*containerjustcalledtemp;
     release(&ptable.lock);
   }

@@ -10,7 +10,7 @@ void schedulercustom(void){
     // int numprocess=0;
     // int * statusprocess=(int *)malloc(maxprocess*sizeof(int));
     // samplecall(&numprocess,&statusprocess);
-    int repeat=-1;
+    // int repeat=-1;
     int containerjustcalled=1;
     int * syscallping = (int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
     int typesyscall = -1;
@@ -61,7 +61,7 @@ void schedulercustom(void){
                 // sleep(2);
                 continue;
             }
-            printf(1,"*");
+            // printf(1,"*");
             if(numprocess==0){
                 // do nothing maybe
             }else if(numprocess==1){
@@ -73,6 +73,49 @@ void schedulercustom(void){
                 int schedset=0;
                 int ptobeslept=-1;
                 int ptobewaken=-1;
+                // for (int i=0;i<numprocess;i++){
+                //     if(startset==0){
+                //         if((processstate[i]==3 || processstate[i]==4) && sleepschedule[i]==0){
+                //             ptobeslept=i;
+                //             startset=1;
+                //         }
+                //     }else if(startset==1){
+                //         if(processstate[i]==2 || sleepschedule[i]==1){
+                //             ptobewaken = i;
+                //             schedset=1;
+                //             break;
+                //         } 
+                //     }
+                // }
+                // if(startset==0){
+                //     for(int i=0;i<numprocess;i++){
+                //         if(processstate[i]==2 || sleepschedule[i]==1){
+                //             ptobewaken=i;
+                //             schedset=1;
+                //             break;
+                //         }
+                //     }
+                // }
+                // if(schedset==0){
+                //     sleepschedule[ptobeslept]=1;
+                // }
+                // if(schedset==1){
+                //     sleepschedule[ptobewaken]=0;
+                //     if(repeat==ptobeslept){
+                //         if(startset==0){
+
+                //             for(int i=0;i<numprocess;i++){
+                //                 sleepschedule[i]=0;
+                //             }
+                //         }
+                //     }
+                //     repeat=ptobeslept;
+                //     if(startset==1 && processstate[ptobeslept]!=4){
+                //         sleepschedule[ptobeslept]=1;
+                //     }
+
+                // }
+
                 for (int i=0;i<numprocess;i++){
                     if(startset==0){
                         if((processstate[i]==3 || processstate[i]==4) && sleepschedule[i]==0){
@@ -87,34 +130,31 @@ void schedulercustom(void){
                         } 
                     }
                 }
-                if(startset==0){
-                    for(int i=0;i<numprocess;i++){
-                        if(processstate[i]==2 || sleepschedule[i]==1){
-                            ptobewaken=i;
+                if(startset==1 && schedset==0){
+                    if(ptobeslept==numprocess-1){
+                        if(processstate[0]==2 || sleepschedule[0]==1){
+
+                            ptobewaken=0;
                             schedset=1;
-                            break;
+                        }else{
+                            //idk
                         }
+                    }else{
+                        //just sleep the waken up
                     }
                 }
-                if(schedset==0){
-                    sleepschedule[ptobeslept]=1;
+                if(startset==0){
+                    ptobewaken=0;
+                    schedset=1;
                 }
                 if(schedset==1){
                     sleepschedule[ptobewaken]=0;
-                    if(repeat==ptobeslept){
-                        if(startset==0){
-
-                            for(int i=0;i<numprocess;i++){
-                                sleepschedule[i]=0;
-                            }
-                        }
-                    }
-                    repeat=ptobeslept;
-                    if(startset==1 && processstate[ptobeslept]!=4){
-                        sleepschedule[ptobeslept]=1;
-                    }
-
                 }
+                if(startset==1){
+                    sleepschedule[ptobeslept]=1;
+                    // repeat = ptobeslept;
+                }
+
 
             }
 
@@ -127,6 +167,11 @@ void schedulercustom(void){
             // sleepschedule[0]=1;
             // sleepschedule[1]=0;
             containerjustcalled=0;
+            // printf(1,"decided\n");
+            // for(int i=0;i<numprocess;i++){
+            //     printf(1,"%d ",sleepschedule[i]);
+            // }
+            // printf(1,"\n");
             registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall);
         }
 
@@ -144,6 +189,20 @@ int main(void){
         numcontainer++;
 
     }
+    pid =fork();
+    if(pid==0){
+        create_container(numcontainer);
+        schedulercustom();
+    }else{
+        numcontainer++;
+    }
+    pid =fork();
+    if(pid==0){
+        create_container(numcontainer);
+        schedulercustom();
+    }else{
+        numcontainer++;
+    }
     sleep(20);
     pid = fork();
     if(pid==0){
@@ -153,7 +212,7 @@ int main(void){
         sleep(2);
         // int count =0;
         for(;;){
-            printf(1,"+");
+            printf(1,"$1_1$\n");
             // count++;
             // if(count%500==0){
             //     printf(1, "doing sys\n");
@@ -174,10 +233,10 @@ int main(void){
         join_container(1);
         // printf(1,"joined container\n");
         sleep(2);
-        int count =0;
+        // int count =0;
         for(;;){
-            printf(1,"-");
-            count++;
+            printf(1,"$1_2$\n");
+            // count++;
             // if(count>2000){
             //     leave_container();
             //     destroy_container(1);
@@ -186,17 +245,86 @@ int main(void){
             //     ps();
             //     exit();
             // }
-            if(count%500==0){
-                printf(1, "doing sys\n");
-                registerSysCall(1);
-                int waittemp = -1;
-                while(waittemp==-1){
-                    printf(1,".");
-                    waittemp=getStatusSysCall();
-                }
-            //     leave_container();
-            //     exit();
-            }
+            // if(count%500==0){
+            //     printf(1, "doing sys\n");
+            //     registerSysCall(1);
+            //     int waittemp = -1;
+            //     while(waittemp==-1){
+            //         printf(1,".");
+            //         waittemp=getStatusSysCall();
+            //     }
+            // //     leave_container();
+            // //     exit();
+            // }
+        }
+    }
+    pid = fork();
+    if(pid==0){
+        // printf(1,"trying joining\n");
+        join_container(1);
+        // printf(1,"joined container\n");
+        sleep(2);
+        // int count =0;
+        for(;;){
+            printf(1,"$1_3$\n");
+            // count++;
+            // if(count%500==0){
+            //     printf(1, "doing sys\n");
+            //     registerSysCall(1);
+            //     int waittemp = -1;
+            //     while(waittemp==-1){
+            //         printf(1,".");
+            //         waittemp=getStatusSysCall();
+            //     }
+            // //     leave_container();
+            // //     exit();
+            // }
+        }
+    }
+    pid = fork();
+    if(pid==0){
+        // printf(1,"trying joining\n");
+        join_container(2);
+        // printf(1,"joined container\n");
+        sleep(2);
+        // int count =0;
+        for(;;){
+            printf(1,"$2_1$\n");
+            // count++;
+            // if(count%500==0){
+            //     printf(1, "doing sys\n");
+            //     registerSysCall(1);
+            //     int waittemp = -1;
+            //     while(waittemp==-1){
+            //         printf(1,".");
+            //         waittemp=getStatusSysCall();
+            //     }
+            // //     leave_container();
+            // //     exit();
+            // }
+        }
+    }
+    pid = fork();
+    if(pid==0){
+        // printf(1,"trying joining\n");
+        join_container(3);
+        // printf(1,"joined container\n");
+        sleep(2);
+        // int count =0;
+        for(;;){
+            printf(1,"$3_1$\n");
+            // count++;
+            // if(count%500==0){
+            //     printf(1, "doing sys\n");
+            //     registerSysCall(1);
+            //     int waittemp = -1;
+            //     while(waittemp==-1){
+            //         printf(1,".");
+            //         waittemp=getStatusSysCall();
+            //     }
+            // //     leave_container();
+            // //     exit();
+            // }
         }
     }
     for(;;){

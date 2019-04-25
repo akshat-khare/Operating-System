@@ -7,7 +7,7 @@ extern int togglestate;
 #define MESSAGESIZE  9      //size of message buffer
 #define MSGSIZE 8
 #define MAXUSERCONTAINERPROCESS 5
-#define SAFESLEEP 20000
+#define SAFESLEEP 200
 typedef int MessageBuffer[MESSAGESIZE];
 extern MessageBuffer message_buffer[NUMBEROFMESSAGEBUFFERS];
 extern int message_queue[NPROC][NUMBEROFMESSAGEBUFFERS];

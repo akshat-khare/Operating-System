@@ -355,21 +355,21 @@ scheduler(void)
       // }else{
 
       // }
-      if(p->isassignedcontainer==1){
-        if(p->safesleepctr>SAFESLEEP){
-          // cprintf("\n\nsafesleep\n\n");
-          // p->sleepschduled=0;
-          p->safesleepctr=0;
-        }else{
+      // if(p->isassignedcontainer==1){
+      //   if(p->safesleepctr>SAFESLEEP){
+      //     // cprintf("\n\nsafesleep\n\n");
+      //     // p->sleepschduled=0;
+      //     p->safesleepctr=0;
+      //   }else{
 
-          if(p->sleepschduled==1 && p->state != RUNNING){
-            // p->sleepschduled=0;
-            p->safesleepctr=p->safesleepctr+1;
-            continue;
-          }
-        }
+      //     if(p->sleepschduled==1 && p->state != RUNNING){
+      //       // p->sleepschduled=0;
+      //       p->safesleepctr=p->safesleepctr+1;
+      //       continue;
+      //     }
+      //   }
 
-      }
+      // }
       if(p->iscontainer==1){
         // cprintf("scheduling container\n");
         p->containerjustcalled=1;
