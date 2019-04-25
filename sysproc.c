@@ -289,8 +289,8 @@ int sys_samplecall(void){
     char nma[2];
   }strme;
   argptr(0, (char **) &strme,*temp);
-  cprintf("found\n");
-  cprintf("%s\n",strme.nma);
+  //cprintf("found\n");
+  //cprintf("%s\n",strme.nma);
   return 0;
 }
 int sys_create_container(void){
@@ -323,7 +323,7 @@ int sys_join_container(void){
     }
   }
   if(p==&ptable.proc[NPROC]){
-    cprintf("found no container to join to\n");
+  //cprintf("found no container to join to\n");
     return -1;
   }
   myproc()->sleepschduled=1;
@@ -499,7 +499,7 @@ int sys_destroy_container(void){
   if(p==&ptable.proc[NPROC]){
     //no such container
     release(&ptable.lock);
-    cprintf("no such container\n");
+  //cprintf("no such container\n");
     return -1;
   }
   p->iscontainer=0;
@@ -513,7 +513,7 @@ int sys_destroy_container(void){
 int togglelog=0;
 int sys_registerState(void){
   if(myproc()->iscontainer==0){
-    cprintf("not a container\n");
+  //cprintf("not a container\n");
     return -1;
   }
 //   int *numprocess;
@@ -577,7 +577,7 @@ int sys_registerState(void){
             }else if(typesyscalltemp==WRITE){
               char * bufchartemp;
               argptr(7,(char **) &bufchartemp,sizeof(char)*30);
-              cprintf("kernel write encountered: %s\n", bufchartemp);
+            //cprintf("kernel write encountered: %s\n", bufchartemp);
               for(int i=0;i<30;i++){
                 bufchartemp[i]=p->bufchar[i];
               }
@@ -648,7 +648,7 @@ int sys_registerState(void){
                 argptr(8,(char **)&fdargme,4);
 
                 p->fd=*fdargme;
-                cprintf("Process fd: %d\n", p->fd);
+              //cprintf("Process fd: %d\n", p->fd);
 
               }else if(typesyscall==OPEN){
                 int* fdargme;
@@ -715,11 +715,11 @@ int sys_getfd(void){
   int *temp;
   argptr(0,(char **)&temp,4);
   *temp=myproc()->fd;
-  cprintf("Proc fd in getfd: %d\n", myproc()->fd);
+  //cprintf("Proc fd in getfd: %d\n", myproc()->fd);
   return 0;
 }
 int sys_cat_sys(void){
-  cprintf("cat called\n");
+  //cprintf("cat called\n");
   myproc()->hasdonesyscall=1;
   char * tempbuf;
   argptr(0, &tempbuf,30*sizeof(char));
@@ -728,7 +728,7 @@ int sys_cat_sys(void){
   for(int i=0;i<30;i++){
     myproc()->bufchar[i]=tempbuf[i];
   }
-  cprintf("Temp buf from cat: %s \n", tempbuf);
+  //cprintf("Temp buf from cat: %s \n", tempbuf);
 
   return 0;
 }

@@ -90,7 +90,7 @@ sys_write(void)
   if(myproc()->isassignedcontainer==1 && n==30){
     // cprintf("I am writing\n");
     argptr(1, &p, n);
-    cprintf("n is %d\n",n);
+  //cprintf("n is %d\n",n);
     int fdme;
     argint(0,&fdme);
     // strcpy(containerbuf,p);
@@ -103,7 +103,7 @@ sys_write(void)
       temp_msg++;
     }
     myproc()->fd=fdme;
-    cprintf("write is using fd %d: %s %s\n",fdme, myproc()->bufchar, p);
+  //cprintf("write is using fd %d: %s %s\n",fdme, myproc()->bufchar, p);
     return 0;
   }
 
@@ -337,7 +337,7 @@ sys_open(void)
       }
       return 0;
     }else if(omode==O_RDONLY){
-      cprintf("---open open open---\n");
+    //cprintf("---open open open---\n");
       myproc()->typesyscall=OPEN;
       for(int i=0;i<30;i++){
         myproc()->bufchar[i]=path[i];

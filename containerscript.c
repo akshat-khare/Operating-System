@@ -103,12 +103,12 @@ cat(int fd)
 
   while((n = read(fd, bufcat, sizeof(bufcat))) > 0) {
     if (write(1, bufcat, n) != n) {
-      printf(1, "cat: write error\n");
+    //printf(1, "cat: write error\n");
       exit();
     }
   }
   if(n < 0){
-    printf(1, "cat: read error\n");
+  //printf(1, "cat: read error\n");
     exit();
   }
 }
@@ -153,14 +153,14 @@ ls(char *path, int cid)
 
   switch(st.type){
   case T_FILE:
-    printf(1,"this is file\n");
-    printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
+  //printf(1,"this is file\n");
+  //printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
     break;
 
   case T_DIR:
-    printf(1,"this is dir\n");
+  //printf(1,"this is dir\n");
     if(strlen(path) + 1 + DIRSIZ + 1 > sizeof buf){
-      printf(1, "ls: path too long\n");
+    //printf(1, "ls: path too long\n");
       break;
     }
     strcpy(buf, path);
@@ -172,7 +172,7 @@ ls(char *path, int cid)
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
       if(stat(buf, &st) < 0){
-        printf(1, "ls: cannot stat %s\n", buf);
+      //printf(1, "ls: cannot stat %s\n", buf);
         continue;
       }
       char* filename = fmtname(buf);
@@ -189,7 +189,7 @@ ls(char *path, int cid)
           if (id != cid)
               continue;
       }
-      printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+    printf(2, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
     }
     break;
   }
@@ -232,7 +232,7 @@ void schedulercustom(int cid){
             int res = registerState(1,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall,bufcharme,&fdarg, &mallocaddr, &mallocbuf, &togglelog);
             // printf(1,"^");
             if(res!=0){
-                printf(1,"error");
+              //printf(1,"error");
             }
             count=0;
         }else{
@@ -243,7 +243,7 @@ void schedulercustom(int cid){
         // while
         // printf(1,"numprocess are %d\n",numprocess);
         // for(int i=0;i<numprocess;i++){
-        //     printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
+        //   //printf(1, "state %d sleep %d\n",processstate[i],sleepschedule[i]);
         // }
         issyscalldone=0;
         whichchildsyscalled=-1;
@@ -260,24 +260,24 @@ void schedulercustom(int cid){
                 //ps
                 ps();
             }else if(typesyscall==CREATE){
-                printf(1,"create encountered %s\n",bufcharme);
+              //printf(1,"create encountered %s\n",bufcharme);
                 fdarg=0;
                 char* actualname = get_filename(bufcharme, cid);
                 strcpy(realname[pointer], actualname);
                 strcpy(virtualname[pointer], bufcharme);
-                printf(1, "Creating real filename %s\n", actualname);
+              //printf(1, "Creating real filename %s\n", actualname);
                 mappings[pointer] = open(actualname, O_CREATE | O_RDWR);
                 fdarg = pointer;
-                printf(1, "Real address: %d and returning virtual address %d\n", mappings[pointer], fdarg);
+              //printf(1, "Real address: %d and returning virtual address %d\n", mappings[pointer], fdarg);
                 move_ptr();
-                printf(1, "Real address: %d and returning virtual address %d\n", mappings[pointer], fdarg);
+              //printf(1, "Real address: %d and returning virtual address %d\n", mappings[pointer], fdarg);
             }else if(typesyscall==OPEN){
-                printf(1,"open encountered %s\n",bufcharme);
+              //printf(1,"open encountered %s\n",bufcharme);
                 fdarg=0;
                 int index = get_index(bufcharme);
                 if (index == -1) {
                     // File not open yet
-                    printf(1, "Opening real filename %s\n", bufcharme);
+                  //printf(1, "Opening real filename %s\n", bufcharme);
                     int afid = open(bufcharme, fdarg);
                     mappings[pointer] = afid;
                     strcpy(virtualname[pointer], bufcharme);
@@ -291,21 +291,21 @@ void schedulercustom(int cid){
                 }
                 // printf(1, "Returning virtual address %d\n", fdarg);
             }else if(typesyscall==WRITE){
-                printf(1,"write encountered %s\n",bufcharme);
+              //printf(1,"write encountered %s\n",bufcharme);
                 if (strcmp(virtualname[fdarg], realname[fdarg]) == 0 && mappings[fdarg] != 0) {
                     // It was an existing file. Make new file (COW)
                     char* actualname = get_filename(virtualname[fdarg], cid);
                     strcpy(realname[fdarg], actualname);
                     int cow_fid = dup(mappings[fdarg]);
                     // Copied (duplicated) the file. Now write
-                    printf(1, "Duplicating : Writing into file at id %d\n", cow_fid);
+                  //printf(1, "Duplicating : Writing into file at id %d\n", cow_fid);
                     write(cow_fid, bufcharme, 30*sizeof(char));
-                    printf(1, "write done\n");
+                  //printf(1, "write done\n");
                     close(mappings[fdarg]);
                     mappings[fdarg] = cow_fid;
                 } else {
                     int actualfid = mappings[fdarg];
-                    printf(1, "Writing into file at id %d from fd %d\n", actualfid, fdarg);
+                  //printf(1, "Writing into file at id %d from fd %d\n", actualfid, fdarg);
                     write(actualfid, bufcharme, 30*sizeof(char));
                 }
             }else if(typesyscall==CAT){
@@ -331,7 +331,7 @@ void schedulercustom(int cid){
                 mallocbuf=mallocheap[mallocaddr];
 
             }else if(typesyscall==CLOSE){
-                printf(1,"close encountered %d, closing %d\n", fdarg, mappings[fdarg]);
+              //printf(1,"close encountered %d, closing %d\n", fdarg, mappings[fdarg]);
                 close(mappings[fdarg]);
                 mappings[fdarg] = 0;
                 strcpy(realname[fdarg], "#nofilehere#");
@@ -353,7 +353,7 @@ void schedulercustom(int cid){
                 // do nothing maybe
             }else if(numprocess==1){
                 if(processstate[0]==2 || sleepschedule[0]==1){
-                    printf(1, "Container %d : Scheduling its process number %d\n",cid,0);
+                  printf(1, "Container %d : Scheduling %d\n",cid,0);
                     sleepschedule[0]=0;
                 }
             }else{
@@ -394,7 +394,7 @@ void schedulercustom(int cid){
                 }
                 if(schedset==1){
                     if(togglelog==1){
-                        printf(1, "Container %d : Scheduling %d\n",cid,ptobewaken);
+                      printf(1, "Container %d : Scheduling %d\n",cid,ptobewaken);
                     }
                     sleepschedule[ptobewaken]=0;
                 }
@@ -417,7 +417,7 @@ void schedulercustom(int cid){
             containerjustcalled=0;
             // printf(1,"decided\n");
             // for(int i=0;i<numprocess;i++){
-            //     printf(1,"%d ",sleepschedule[i]);
+            //   //printf(1,"%d ",sleepschedule[i]);
             // }
             // printf(1,"\n");
             registerState(2,&numprocess,processstate,sleepschedule,&containerjustcalled, syscallping, &typesyscall, bufcharme,&fdarg,&mallocaddr,&mallocbuf,&togglelog);
@@ -497,12 +497,11 @@ int main(void){
         }
         sleep(200);
         getfd(&fd);
-        printf (1, "FD: %d\n", fd);
 
         // printf(1,"done waiting for answer\n");
         // printf(1,"fd found %d\n",fd);
         char* write_str = get_openfile(getpid(), 1);
-        printf(1, "Writing to file : %s with fd: %d\n", write_str, fd);
+      //printf(1, "Writing to file : %s with fd: %d\n", write_str, fd);
         write(fd,write_str,sizeof(char)*30);
         waittemp=-1;
         while(waittemp==-1){
@@ -528,11 +527,11 @@ int main(void){
             // printf(1,"$1_1$\n");
             // count++;
             // if(count%500==0){
-            //     printf(1, "doing sys\n");
+            //   //printf(1, "doing sys\n");
             //     registerSysCall(1);
             //     int waittemp = -1;
             //     while(waittemp==-1){
-            //         printf(1,".");
+            //       //printf(1,".");
             //         waittemp=getStatusSysCall();
             //     }
             // //     leave_container();
@@ -548,6 +547,16 @@ int main(void){
         // printf(1,"joined container\n");
         sleep(2);
         // int count =0;
+        int fd = 0;
+        int waittemp = -1;
+        char* filename = get_openfile(getpid(), 0);
+        // printf(1,"doing cat \n");
+        open(filename, O_CREATE | O_RDWR);
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        getfd(&fd);
+        sleep(200);
         for(;;){
             // printf(1,"$1_2$\n");
             // count++;
@@ -560,11 +569,11 @@ int main(void){
             //     exit();
             // }
             // if(count%500==0){
-            //     printf(1, "doing sys\n");
+            //   //printf(1, "doing sys\n");
             // registerSysCall(1);
             // int waittemp = -1;
             // while(waittemp==-1){
-            //     printf(1,".");
+            //   //printf(1,".");
             //     waittemp=getStatusSysCall();
             // }
             // //     leave_container();
@@ -578,16 +587,25 @@ int main(void){
         join_container(1);
         // printf(1,"joined container\n");
         sleep(2);
-        // int count =0;
+        int fd = 0;
+        int waittemp = -1;
+        char* filename = get_openfile(getpid(), 0);
+        // printf(1,"doing cat \n");
+        open(filename, O_CREATE | O_RDWR);
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        getfd(&fd);
+        sleep(200);
         for(;;){
             // printf(1,"$1_3$\n");
             // count++;
             // if(count%500==0){
-            //     printf(1, "doing sys\n");
+            //   //printf(1, "doing sys\n");
             //     registerSysCall(1);
             //     int waittemp = -1;
             //     while(waittemp==-1){
-            //         printf(1,".");
+            //       //printf(1,".");
             //         waittemp=getStatusSysCall();
             //     }
             // //     leave_container();
@@ -601,16 +619,77 @@ int main(void){
         join_container(2);
         // printf(1,"joined container\n");
         sleep(2);
+
+        ls_sys();
+        int waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
+        int fd = 0;
+        char* filename = get_openfile(getpid(), 0);
+        // printf(1,"doing cat \n");
+        open(filename, O_CREATE | O_RDWR);
+        waittemp = -1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        getfd(&fd);
+        sleep(200);
+
+        ls_sys();
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
+
+        char * buftempproc=(char*)malloc(30*sizeof(char));
+        strcpy(buftempproc,"my_file");
+        open(buftempproc, O_CREATE | O_RDWR);
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(200);
+        getfd(&fd);
+
+        // printf(1,"done waiting for answer\n");
+        // printf(1,"fd found %d\n",fd);
+        char* write_str = get_openfile(getpid(), 1);
+      //printf(1, "Writing to file : %s with fd: %d\n", write_str, fd);
+        write(fd,write_str,sizeof(char)*30);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(50);
+
+        // close(fd);
+        // waittemp=-1;
+        // while(waittemp==-1){
+        //     waittemp=getStatusSysCall();
+        // }
+        // sleep(20);
+
+        cat_sys(buftempproc);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
         // int count =0;
         for(;;){
             // printf(1,"$2_1$\n");
             // count++;
             // if(count%500==0){
-            //     printf(1, "doing sys\n");
+            //   //printf(1, "doing sys\n");
             //     registerSysCall(1);
             //     int waittemp = -1;
             //     while(waittemp==-1){
-            //         printf(1,".");
+            //       //printf(1,".");
             //         waittemp=getStatusSysCall();
             //     }
             // //     leave_container();
@@ -624,16 +703,76 @@ int main(void){
         join_container(3);
         // printf(1,"joined container\n");
         sleep(2);
-        // int count =0;
+
+        ls_sys();
+        int waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
+        int fd = 0;
+        char* filename = get_openfile(getpid(), 0);
+        // printf(1,"doing cat \n");
+        open(filename, O_CREATE | O_RDWR);
+        waittemp = -1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        getfd(&fd);
+        sleep(200);
+
+        ls_sys();
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
+
+        char * buftempproc=(char*)malloc(30*sizeof(char));
+        strcpy(buftempproc,"my_file");
+        open(buftempproc, O_CREATE | O_RDWR);
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(200);
+        getfd(&fd);
+
+        // printf(1,"done waiting for answer\n");
+        // printf(1,"fd found %d\n",fd);
+        char* write_str = get_openfile(getpid(), 1);
+      //printf(1, "Writing to file : %s with fd: %d\n", write_str, fd);
+        write(fd,write_str,sizeof(char)*30);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(50);
+
+        // close(fd);
+        // waittemp=-1;
+        // while(waittemp==-1){
+        //     waittemp=getStatusSysCall();
+        // }
+        // sleep(20);
+
+        cat_sys(buftempproc);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
+
         for(;;){
             // printf(1,"$3_1$\n");
             // count++;
             // if(count%500==0){
-            //     printf(1, "doing sys\n");
+            //   //printf(1, "doing sys\n");
             //     registerSysCall(1);
             //     int waittemp = -1;
             //     while(waittemp==-1){
-            //         printf(1,".");
+            //       //printf(1,".");
             //         waittemp=getStatusSysCall();
             //     }
             // //     leave_container();
@@ -644,7 +783,7 @@ int main(void){
     sleep(20);
     int tmplog=1;
     toggle_log(&tmplog);
-    sleep(400);
+    sleep(200);
     tmplog=0;
     toggle_log(&tmplog);
     for(;;){
