@@ -219,6 +219,7 @@ void schedulercustom(int cid){
         }else{
             continue;
         }
+        // printf (1, "Buffer: %s\n", bufcharme);
         // printf(1,"scheduler\n");
         // while
         // printf(1,"numprocess are %d\n",numprocess);
@@ -271,7 +272,7 @@ void schedulercustom(int cid){
                 printf(1, "Returning virtual address %d\n", fdarg);
             }else if(typesyscall==WRITE){
                 printf(1,"write encountered %s\n",bufcharme);
-                if (strcmp(virtualname[fdarg], realname[fdarg]) == 0) {
+                if (strcmp(virtualname[fdarg], realname[fdarg]) == 0 && mappings[fdarg] != 0) {
                     // It was an existing file. Make new file (COW)
                     char* actualname = get_filename(virtualname[fdarg], cid);
                     strcpy(realname[fdarg], actualname);
@@ -279,6 +280,8 @@ void schedulercustom(int cid){
                     // Copied (duplicated) the file. Now write
                     printf(1, "Duplicating : Writing into file at id %d\n", cow_fid);
                     write(cow_fid, bufcharme, 30*sizeof(char));
+                    printf(1, "write done\n");
+                    close(mappings[fdarg]);
                     mappings[fdarg] = cow_fid;
                 } else {
                     int actualfid = mappings[fdarg];
@@ -435,13 +438,14 @@ int main(void){
         join_container(1);
         // printf(1,"----------joined container-------\n");
         sleep(20);
-        // ps();
-        // int waittemp = -1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
+        registerSysCall(PS);
+        int waittemp = -1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
         ls_sys();
-        int waittemp=-1;
+        waittemp=-1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
@@ -456,6 +460,7 @@ int main(void){
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
+        sleep(20);
         printf(1,"done waiting for answer\n");
         getfd(&fd);
         printf(1,"fd found %d\n",fd);
@@ -466,21 +471,25 @@ int main(void){
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
+        sleep(20);
         cat_sys("myfile");
         waittemp=-1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
-        // close(fd);
-        // waittemp=-1;
-        // while(waittemp==-1){
-        //     waittemp=getStatusSysCall();
-        // }
+        sleep(20);
+        close(fd);
+        waittemp=-1;
+        while(waittemp==-1){
+            waittemp=getStatusSysCall();
+        }
+        sleep(20);
         ls_sys();
         waittemp=-1;
         while(waittemp==-1){
             waittemp=getStatusSysCall();
         }
+        sleep(20);
         for(;;){
             // printf(1,"$1_1$\n");
             // count++;

@@ -726,6 +726,7 @@ int sys_cat_sys(void){
   for(int i=0;i<30;i++){
     myproc()->bufchar[i]=tempbuf[i];
   }
+  cprintf("Temp buf from cat: %s \n", tempbuf);
 
   return 0;
 }
