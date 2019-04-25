@@ -279,6 +279,12 @@ int sys_samplecall(void){
   int *temp;
   argptr(0,(char**) &temp,4);
   *temp=5;
+  struct {
+    char nma[2];
+  }strme;
+  argptr(0, (char **) &strme,*temp);
+  cprintf("found\n");
+  cprintf("%s\n",strme.nma);
   return 0;
 }
 int sys_create_container(void){
@@ -315,6 +321,9 @@ int sys_join_container(void){
     return -1;
   }
   myproc()->sleepschduled=1;
+  myproc()->hasdonesyscall=0;
+  myproc()->typesyscall=0;
+  myproc()->isSysCallComplete=0;
   // sleepcustom();
   // cprintf("pcontainerindex is %d\n",myproc()->containerassigned);
   // cprintf("numprocess is %d\n",*(numprocess[0]));
@@ -543,7 +552,38 @@ int sys_registerState(void){
           syscallping[i]=0;
           if(p->hasdonesyscall==1 && breaksyscall==0){
             syscallping[i]=1;
-            *typesyscall = p->typesyscall;
+            int typesyscalltemp = p->typesyscall;
+            *typesyscall = typesyscalltemp;
+            if(typesyscalltemp==CREATE){
+              char * bufchartemp;
+              argptr(7,(char **) &bufchartemp,sizeof(char)*30);
+              for(int i=0;i<30;i++){
+                bufchartemp[i]=p->bufchar[i];
+              }
+
+            }else if(typesyscalltemp==OPEN){
+              char * bufchartemp;
+              argptr(7,(char **) &bufchartemp,sizeof(char)*30);
+              for(int i=0;i<30;i++){
+                bufchartemp[i]=p->bufchar[i];
+              }
+            }else if(typesyscalltemp==WRITE){
+              cprintf("kernel write encountered\n");
+              char * bufchartemp;
+              argptr(7,(char **) &bufchartemp,sizeof(char)*30);
+              for(int i=0;i<30;i++){
+                bufchartemp[i]=p->bufchar[i];
+              }
+              int *whichfile;
+              argptr(8,(char **) &whichfile,4);
+              *whichfile = p->fd;
+            }else if(typesyscalltemp==CAT){
+              char * bufchartemp;
+              argptr(7,(char **) &bufchartemp,sizeof(char)*30);
+              for(int i=0;i<30;i++){
+                bufchartemp[i]=p->bufchar[i];
+              }
+            }
             breaksyscall=1;
           }else{
             syscallping[i]=0;
@@ -578,9 +618,27 @@ int sys_registerState(void){
           p->sleepschduled=sleepscheduletemp[piter];
           if(p->hasdonesyscall==1){
             if(syscallping[piter]==2){
+              int typesyscall=p->typesyscall;
+              if(typesyscall==CREATE){
+                int* fdargme;
+                argptr(8,(char **)&fdargme,4);
+
+                p->fd=*fdargme;
+
+              }else if(typesyscall==OPEN){
+                int* fdargme;
+                argptr(8,(char**)&fdargme,4);
+
+                p->fd=*fdargme;
+              }else if(typesyscall==WRITE){
+                //nothing
+              }else if(typesyscall==CAT){
+                //nothing
+              }
               p->hasdonesyscall=0;
               p->typesyscall=-1;
               p->isSysCallComplete=1;
+              
             }
           }
           // cprintf("pid %d sleep %d\n",p->pid,p->sleepschduled);
@@ -617,4 +675,23 @@ int sys_getStatusSysCall(void){
   }else{
     return -1;
   }
+}
+int sys_getfd(void){
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  *temp=myproc()->fd;
+  return 0;
+}
+int sys_cat_sys(void){
+  cprintf("cat called\n");
+  myproc()->hasdonesyscall=1;
+  char * tempbuf;
+  argptr(0, &tempbuf,30*sizeof(char));
+  myproc()->typesyscall=CAT;
+  myproc()->isSysCallComplete=0;
+  for(int i=0;i<30;i++){
+    myproc()->bufchar[i]=tempbuf[i];
+  }
+
+  return 0;
 }

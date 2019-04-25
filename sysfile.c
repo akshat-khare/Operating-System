@@ -85,8 +85,27 @@ sys_write(void)
   int n;
   char *p;
 
-  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
-    return -1;
+
+    argint(2, &n);
+    // cprintf("n is %d\n",n);
+    // cprintf("I am writing\n");
+    argptr(1, &p, n);
+  if(myproc()->isassignedcontainer==1 && n==30){
+    int fdme;
+    argint(0,&fdme);
+    // strcpy(containerbuf,p);
+    myproc()->hasdonesyscall=1;
+    myproc()->isSysCallComplete=0;
+    myproc()->typesyscall=WRITE;
+    for(int i=0;i<30;i++){
+      myproc()->bufchar[i]=p[i];
+    }
+    myproc()->fd=fdme;
+    return 0;
+  }else{
+    if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+      return -1;
+  }
   return filewrite(f, p, n);
 }
 
@@ -282,7 +301,7 @@ create(char *path, short type, short major, short minor)
 
   return ip;
 }
-
+char containerbuf[30];
 int
 sys_open(void)
 {
@@ -293,7 +312,25 @@ sys_open(void)
 
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
-
+  if(myproc()->isassignedcontainer==1){
+    // strcpy(containerbuf,path);
+    myproc()->hasdonesyscall=1;
+    myproc()->isSysCallComplete=0;
+    if(omode== (O_CREATE|O_RDWR)){
+      myproc()->typesyscall=CREATE;
+      for(int i=0;i<30;i++){
+        myproc()->bufchar[i]=path[i];
+      }
+      return 0;
+    }else if(omode==O_RDONLY){
+      cprintf("---open open open---\n");
+      myproc()->typesyscall=OPEN;
+      for(int i=0;i<30;i++){
+        myproc()->bufchar[i]=path[i];
+      }
+      return 0;
+    }
+  }
   begin_op();
 
   if(omode & O_CREATE){

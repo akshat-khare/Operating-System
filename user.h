@@ -33,15 +33,17 @@ int recv(char *);
 int registerhandler(int, int);
 int send_multi(int, int, int *, char*);
 int recvmulti(char *);
-int samplecall(int*);
+int samplecall(int*, void *);
 int create_container(int);
 int join_container(int);
 int scheduler_call(void);
 int leave_container(void);
 int destroy_container(int);
-int registerState(int, int*, int*,int*, int*, int*, int *);
+int registerState(int, int*, int*,int*, int*, int*, int *,char *,int *);
 int registerSysCall(int);
 int getStatusSysCall(void);
+int getfd(int*);
+int cat_sys(char*);
 
 
 // ulib.c

@@ -124,6 +124,8 @@ extern int sys_destroy_container(void);
 extern int sys_registerState(void);
 extern int sys_registerSysCall(void);
 extern int sys_getStatusSysCall(void);
+extern int sys_getfd(void);
+extern int sys_cat_sys(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -166,6 +168,8 @@ static int (*syscalls[])(void) = {
 [SYS_registerState] sys_registerState,
 [SYS_registerSysCall] sys_registerSysCall,
 [SYS_getStatusSysCall] sys_getStatusSysCall,
+[SYS_getfd] sys_getfd,
+[SYS_cat_sys] sys_cat_sys,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -208,6 +212,8 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_destroy_container",
   "sys_registerState",
   "sys_getStatusSysCall",
+  "sys_getfd",
+  "sys_cat_sys",
 };
 
 static int syscallctr[NELEM(syscalls)];

@@ -39,3 +39,5 @@
 #define SYS_registerState 38
 #define SYS_registerSysCall 39
 #define SYS_getStatusSysCall 40
+#define SYS_getfd 41
+#define SYS_cat_sys 42
