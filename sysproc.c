@@ -504,6 +504,7 @@ int sys_destroy_container(void){
   kill(p->pid);
   return 0;
 }
+int togglelog=0;
 int sys_registerState(void){
   if(myproc()->iscontainer==0){
     cprintf("not a container\n");
@@ -606,6 +607,9 @@ int sys_registerState(void){
         }
       }
     }
+    int *toggletemp;
+    argptr(11,(char **) &toggletemp,4);
+    *toggletemp = togglelog;
     release(&ptable.lock);
 
     *containerjustcalledtemp=myproc()->containerjustcalled;
@@ -765,4 +769,10 @@ int sys_readvalmalloc_sys(void){
   argptr(0,(char **)&temp,4);
   *temp=myproc()->mallocbuf;
   return 0;  
+}
+int sys_toggle_log(void){
+  int *temp;
+  argptr(0,(char **)&temp,4);
+  togglelog=*temp;
+  return 0;
 }

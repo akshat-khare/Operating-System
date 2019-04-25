@@ -132,6 +132,7 @@ extern int sys_getmallocaddr_sys(void);
 extern int sys_writemalloc_sys(void);
 extern int sys_readmalloc_sys(void);
 extern int sys_readvalmalloc_sys(void);
+extern int sys_toggle_log(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -182,6 +183,7 @@ static int (*syscalls[])(void) = {
 [SYS_writemalloc_sys] sys_writemalloc_sys,
 [SYS_readmalloc_sys] sys_readmalloc_sys,
 [SYS_readvalmalloc_sys] sys_readvalmalloc_sys,
+[SYS_toggle_log] sys_toggle_log,
 
 };
 
@@ -233,6 +235,7 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_writemalloc_sys",
   "sys_readmalloc_sys",
   "sys_readvalmalloc_sys",
+  "sys_toggle_log",
 
 };
 

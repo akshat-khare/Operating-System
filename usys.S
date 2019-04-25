@@ -56,4 +56,5 @@ SYSCALL(getmallocaddr_sys)
 SYSCALL(writemalloc_sys)
 SYSCALL(readmalloc_sys)
 SYSCALL(readvalmalloc_sys)
+SYSCALL(toggle_log)
 

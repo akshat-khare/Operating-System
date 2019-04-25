@@ -615,6 +615,11 @@ void printrunningprocess(void){
             continue;
           }
         }
+        if(p->iscontainer==1){
+          if(p->containerindex!=p->containerassigned){
+            continue;
+          }
+        }
         cprintf("pid:%d name:%s state:%d sleep:%d\n", p->pid, p->name, p->state, p->sleepschduled);
       }
     }else{
