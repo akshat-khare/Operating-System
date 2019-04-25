@@ -39,10 +39,12 @@ int join_container(int);
 int scheduler_call(void);
 int leave_container(void);
 int destroy_container(int);
-int registerState(int, int*, int*,int*, int*, int*, int *);
+int get_arguments(void);
+int registerState(int, int*, int*, int*, int*, int*, int *);
 int registerSysCall(int);
 int getStatusSysCall(void);
-
+int pop_args(struct args* next_args);
+int getcid();
 
 // ulib.c
 int stat(const char*, struct stat*);

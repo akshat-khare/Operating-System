@@ -1,7 +1,61 @@
 #include "types.h"
 #include "stat.h"
 #include "user.h"
+#include "fcntl.h"
+
 int maxprocess=5;
+int container_table[MAXCONTAINERS][NOFILE][3];
+char afname[MAXCONTAINERS][NOFILE][MAXWRITECHARS];
+char vfname[MAXCONTAINERS][NOFILE][MAXWRITECHARS];
+int serve_once = 0;
+
+char* 
+itoa(int num) 
+{
+	// Convert number to string
+	char *sum = (char *)malloc(MSGSIZE);
+	int tsum = num, ch = -1;
+	while(tsum > 0) {
+		ch++;
+		tsum = tsum / 10;
+	}
+	tsum = num;
+	while(tsum > 0) {
+		int dig = tsum % 10;
+		sum[ch--] = dig + '0';
+		tsum = tsum / 10;
+	}
+	return sum;
+}
+
+int serve_processes(void) {
+    printf(1, "Starting serve processes\n");
+    struct args* serve_args = (struct args*)malloc(sizeof(struct args));
+    int code = pop_args(serve_args);
+    if (code == -1)
+        return -1;
+
+    if (serve_args->call_type == 0) {
+        printf(1, "Received open file syscall from process %d\n", serve_args->sender_pid);
+        int omode = serve_args->integers[0];
+        char* filename = serve_args->strings[0];
+        printf(1, "Opening file %s with mode %d\n", filename, omode);
+        serve_once = 1;
+        char actualfile[MAXWRITECHARS];
+        char* pid_str = itoa();
+        char* a = "##";
+        strcpy(actualfile, filename);
+        strcat(actualfile, a);
+        for (int i = 0; i < MAXWRITECHARS; i++) {
+            afname[getcid()][0][i] = actualfile[i];
+            vfname[getcid()][0][i] = *filename;
+            filename++;
+        }
+        int afile_id = open(actualfile, omode);
+    }
+    return 0;
+}
+
 void schedulercustom(void){
     int numprocess=0;
     int * processstate=(int *)malloc(MAXUSERCONTAINERPROCESS*sizeof(int));
@@ -27,6 +81,8 @@ void schedulercustom(void){
             if(res!=0){
                 printf(1,"error");
             }
+            if (serve_once == 0)
+                serve_processes();
             count=0;
         }else{
             continue;
@@ -189,20 +245,20 @@ int main(void){
         numcontainer++;
 
     }
-    pid =fork();
-    if(pid==0){
-        create_container(numcontainer);
-        schedulercustom();
-    }else{
-        numcontainer++;
-    }
-    pid =fork();
-    if(pid==0){
-        create_container(numcontainer);
-        schedulercustom();
-    }else{
-        numcontainer++;
-    }
+    // pid =fork();
+    // if(pid==0){
+    //     create_container(numcontainer);
+    //     schedulercustom();
+    // }else{
+    //     numcontainer++;
+    // }
+    // pid =fork();
+    // if(pid==0){
+    //     create_container(numcontainer);
+    //     schedulercustom();
+    // }else{
+    //     numcontainer++;
+    // }
     sleep(20);
     pid = fork();
     if(pid==0){
@@ -211,7 +267,7 @@ int main(void){
         // printf(1,"joined container\n");
         sleep(2);
         // int count =0;
-        for(;;){
+        for(int k = 0; k < 1; k++){
             printf(1,"$1_1$\n");
             // count++;
             // if(count%500==0){
@@ -225,108 +281,129 @@ int main(void){
             // //     leave_container();
             // //     exit();
             // }
+            // int fd=-1;
+            open("myfile",O_CREATE|O_RDWR);
+            int waittemp = -1;
+            while(waittemp==-1){
+                waittemp=getStatusSysCall();
+            }
+            printf(1, "Busy waiting finished\n");
+            // getfd(&fd);
+            // char mywrite[30];
+            // strcpy(mywrite,"hi\0");
+            // write(fd,&mywrite,sizeof(char)*30);
+            // waittemp=-1;
+            // while(waittemp==-1){
+            //     waittemp=getStatusSysCall();
+            // }
+            // cat_sys("myfile");
+            // waittemp=-1;
+            // while(waittemp==-1){
+            //     waittemp=getStatusSysCall();
+            // }
+            exit();
         }
     }
-    pid = fork();
-    if(pid==0){
-        // printf(1,"trying joining\n");
-        join_container(1);
-        // printf(1,"joined container\n");
-        sleep(2);
-        // int count =0;
-        for(;;){
-            printf(1,"$1_2$\n");
-            // count++;
-            // if(count>2000){
-            //     leave_container();
-            //     destroy_container(1);
-            //     ps();
-            //     sleep(200);
-            //     ps();
-            //     exit();
-            // }
-            // if(count%500==0){
-            //     printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //         printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
-    }
-    pid = fork();
-    if(pid==0){
-        // printf(1,"trying joining\n");
-        join_container(1);
-        // printf(1,"joined container\n");
-        sleep(2);
-        // int count =0;
-        for(;;){
-            printf(1,"$1_3$\n");
-            // count++;
-            // if(count%500==0){
-            //     printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //         printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
-    }
-    pid = fork();
-    if(pid==0){
-        // printf(1,"trying joining\n");
-        join_container(2);
-        // printf(1,"joined container\n");
-        sleep(2);
-        // int count =0;
-        for(;;){
-            printf(1,"$2_1$\n");
-            // count++;
-            // if(count%500==0){
-            //     printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //         printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
-    }
-    pid = fork();
-    if(pid==0){
-        // printf(1,"trying joining\n");
-        join_container(3);
-        // printf(1,"joined container\n");
-        sleep(2);
-        // int count =0;
-        for(;;){
-            printf(1,"$3_1$\n");
-            // count++;
-            // if(count%500==0){
-            //     printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //         printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
-    }
+    // pid = fork();
+    // if(pid==0){
+    //     // printf(1,"trying joining\n");
+    //     join_container(1);
+    //     // printf(1,"joined container\n");
+    //     sleep(2);
+    //     // int count =0;
+    //     for(int k = 0; k < 2; k++){
+    //         printf(1,"$1_2$\n");
+    //         // count++;
+    //         // if(count>2000){
+    //         //     leave_container();
+    //         //     destroy_container(1);
+    //         //     ps();
+    //         //     sleep(200);
+    //         //     ps();
+    //         //     exit();
+    //         // }
+    //         // if(count%500==0){
+    //         //     printf(1, "doing sys\n");
+    //         //     registerSysCall(1);
+    //         //     int waittemp = -1;
+    //         //     while(waittemp==-1){
+    //         //         printf(1,".");
+    //         //         waittemp=getStatusSysCall();
+    //         //     }
+    //         // //     leave_container();
+    //         // //     exit();
+    //         // }
+    //     }
+    // }
+    // pid = fork();
+    // if(pid==0){
+    //     // printf(1,"trying joining\n");
+    //     join_container(1);
+    //     // printf(1,"joined container\n");
+    //     sleep(2);
+    //     // int count =0;
+    //     for(int k = 0; k < 2; k++){
+    //         printf(1,"$1_3$\n");
+    //         // count++;
+    //         // if(count%500==0){
+    //         //     printf(1, "doing sys\n");
+    //         //     registerSysCall(1);
+    //         //     int waittemp = -1;
+    //         //     while(waittemp==-1){
+    //         //         printf(1,".");
+    //         //         waittemp=getStatusSysCall();
+    //         //     }
+    //         // //     leave_container();
+    //         // //     exit();
+    //         // }
+    //     }
+    // }
+    // pid = fork();
+    // if(pid==0){
+    //     // printf(1,"trying joining\n");
+    //     join_container(2);
+    //     // printf(1,"joined container\n");
+    //     sleep(2);
+    //     // int count =0;
+    //     for(;;){
+    //         printf(1,"$2_1$\n");
+    //         // count++;
+    //         // if(count%500==0){
+    //         //     printf(1, "doing sys\n");
+    //         //     registerSysCall(1);
+    //         //     int waittemp = -1;
+    //         //     while(waittemp==-1){
+    //         //         printf(1,".");
+    //         //         waittemp=getStatusSysCall();
+    //         //     }
+    //         // //     leave_container();
+    //         // //     exit();
+    //         // }
+    //     }
+    // }
+    // pid = fork();
+    // if(pid==0){
+    //     // printf(1,"trying joining\n");
+    //     join_container(3);
+    //     // printf(1,"joined container\n");
+    //     sleep(2);
+    //     // int count =0;
+    //     for(;;){
+    //         printf(1,"$3_1$\n");
+    //         // count++;
+    //         // if(count%500==0){
+    //         //     printf(1, "doing sys\n");
+    //         //     registerSysCall(1);
+    //         //     int waittemp = -1;
+    //         //     while(waittemp==-1){
+    //         //         printf(1,".");
+    //         //         waittemp=getStatusSysCall();
+    //         //     }
+    //         // //     leave_container();
+    //         // //     exit();
+    //         // }
+    //     }
+    // }
     for(;;){
 
     }

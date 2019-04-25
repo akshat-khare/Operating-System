@@ -39,3 +39,5 @@
 #define SYS_registerState 38
 #define SYS_registerSysCall 39
 #define SYS_getStatusSysCall 40
+#define SYS_pop_args 41
+#define SYS_getcid  42

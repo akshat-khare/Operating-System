@@ -16,6 +16,14 @@
 #include "file.h"
 #include "fcntl.h"
 
+// Structures for sending arguments to containers
+struct args container_calls[MAXCONTAINERS][MAXCALLS];
+int call_fronts[MAXCONTAINERS] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+int call_rears[MAXCONTAINERS] = {0};
+
+// Lock for addition of calls to container
+struct spinlock queue_lock;
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -85,6 +93,41 @@ sys_write(void)
   int n;
   char *p;
 
+  if (myproc()->iscontainer == 0 && myproc()->isassignedcontainer == 1) {
+    int file_id;
+    int cid = myproc()->containerassigned;
+    if(argint(0, &file_id) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+      return -1;
+    if (call_fronts[cid] > call_rears[cid]) 
+      return -1; 
+  
+    // Construct frame and add to array because calling process is not container
+    struct args new_args;
+    new_args.sender_pid = myproc()->pid;
+    new_args.call_type = 1;
+    new_args.num_int_args = 2;
+    new_args.num_str_args = 1;
+    new_args.integers[0] = file_id;
+    new_args.integers[1] = n;
+    char *temp_msg = p;
+    for (int i = 0; i < MAXWRITECHARS; i++) {
+      new_args.strings[0][i] = *temp_msg;
+      temp_msg++;
+    }
+
+    // Add to the corresponding container queue
+    container_calls[cid][call_rears[cid]] = new_args;
+    acquire(&queue_lock);
+    call_rears[cid] = (call_rears[cid] + 1) % MAXCALLS;
+    if (call_fronts[cid] == -1)
+      call_fronts[cid] = 0;
+    release(&queue_lock);
+
+    myproc()->isSysCallComplete = 0;
+    // Added to queue. Now return to function
+    return 0;
+  }
+
   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
     return -1;
   return filewrite(f, p, n);
@@ -95,6 +138,34 @@ sys_close(void)
 {
   int fd;
   struct file *f;
+
+  if (myproc()->iscontainer == 0 && myproc()->isassignedcontainer == 1) {
+    int file_id;
+    int cid = myproc()->containerassigned;
+    if(argint(0, &file_id) < 0)
+      return -1;
+    if (call_fronts[cid] > call_rears[cid]) 
+      return -1; 
+  
+    // Construct frame and add to array because calling process is not container
+    struct args new_args;
+    new_args.sender_pid = myproc()->pid;
+    new_args.call_type = 2;
+    new_args.num_int_args = 1;
+    new_args.integers[0] = file_id;
+
+    // Add to the corresponding container queue
+    container_calls[cid][call_rears[cid]] = new_args;
+    acquire(&queue_lock);
+    call_rears[cid] = (call_rears[cid] + 1) % MAXCALLS;
+    if (call_fronts[cid] == -1)
+      call_fronts[cid] = 0;
+    release(&queue_lock);
+
+    myproc()->isSysCallComplete = 0;
+    // Added to queue. Now return to function
+    return 0;
+  }
 
   if(argfd(0, &fd, &f) < 0)
     return -1;
@@ -291,8 +362,47 @@ sys_open(void)
   struct file *f;
   struct inode *ip;
 
-  if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+  cprintf("Beginning open file\n");
+
+  if(argstr(0, &path) < 0 || argint(1, &omode) < 0) {
+    cprintf ("Returned -1\n");
     return -1;
+  }
+
+  if (myproc()->isassignedcontainer == 1) {
+    int cid = myproc()->containerassigned;
+    cprintf ("Opening file %s, with mode %d\n", path, omode);
+    if (call_fronts[cid] > call_rears[cid]) 
+      return -1; 
+  
+    // Construct frame and add to array because calling process is not container
+    struct args new_args;
+    new_args.sender_pid = myproc()->pid;
+    new_args.call_type = 0;
+    new_args.num_int_args = 1;
+    new_args.num_str_args = 1;
+    new_args.integers[0] = omode;
+    char *temp_msg = path;
+    for (int i = 0; i < MAXWRITECHARS; i++) {
+      new_args.strings[0][i] = *temp_msg;
+      temp_msg++;
+    }
+    cprintf("Adding filename %s\n", new_args.strings[0]);
+
+    // Add to the corresponding container queue
+    container_calls[cid][call_rears[cid]] = new_args;
+    acquire(&queue_lock);
+    call_rears[cid] = (call_rears[cid] + 1) % MAXCALLS;
+    if (call_fronts[cid] == -1)
+      call_fronts[cid] = 0;
+    release(&queue_lock);
+    cprintf("Added call to the queue\n");
+
+    myproc()->isSysCallComplete = 0;
+    // Added to queue. Now return to function
+    return 0;
+  }
+  cprintf("Not assigned container\n");
 
   begin_op();
 
@@ -441,5 +551,41 @@ sys_pipe(void)
   }
   fd[0] = fd0;
   fd[1] = fd1;
+  return 0;
+}
+
+int
+sys_pop_args(void)
+{
+  struct args* next_args;
+  int cid = myproc()->containerindex;
+  if (argptr(0, (char**) &next_args, sizeof(struct args)) < 0)
+    return -1;
+  if (call_fronts[cid] == -1)
+    return -1;
+
+  next_args->call_type = container_calls[cid][call_fronts[cid]].call_type;
+  next_args->sender_pid = container_calls[cid][call_fronts[cid]].sender_pid;
+  next_args->num_int_args = container_calls[cid][call_fronts[cid]].num_int_args;
+  next_args->num_str_args = container_calls[cid][call_fronts[cid]].num_str_args;
+  for (int i = 0; i < next_args->num_int_args; i++) {
+    next_args->integers[i] = container_calls[cid][call_fronts[cid]].integers[i];
+  }
+  for (int i = 0; i < next_args->num_str_args; i++) {
+    char *temp_msg = container_calls[cid][call_fronts[cid]].strings[i];
+    for (int j = 0; j < MAXWRITECHARS; j++) {
+      next_args->strings[i][j] = *temp_msg;
+      temp_msg++;
+    }
+  }
+
+  acquire(&queue_lock);
+  call_fronts[cid] = (call_fronts[cid] + 1) % MAXCALLS;
+  if (call_fronts[cid] == call_rears[cid]) { 
+    call_fronts[cid] = -1;
+    call_rears[cid] = 0;
+  } 
+  release(&queue_lock);
+
   return 0;
 }

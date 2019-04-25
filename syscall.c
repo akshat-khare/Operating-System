@@ -121,51 +121,57 @@ extern int sys_join_container(void);
 extern int sys_scheduler_call(void);
 extern int sys_leave_container(void);
 extern int sys_destroy_container(void);
+extern int sys_get_arguments(void);
 extern int sys_registerState(void);
 extern int sys_registerSysCall(void);
 extern int sys_getStatusSysCall(void);
 
+extern int sys_pop_args(void);
+extern int sys_getcid(void);
+
 static int (*syscalls[])(void) = {
-[SYS_fork]    sys_fork,
-[SYS_exit]    sys_exit,
-[SYS_wait]    sys_wait,
-[SYS_pipe]    sys_pipe,
-[SYS_read]    sys_read,
-[SYS_kill]    sys_kill,
-[SYS_exec]    sys_exec,
-[SYS_fstat]   sys_fstat,
-[SYS_chdir]   sys_chdir,
-[SYS_dup]     sys_dup,
-[SYS_getpid]  sys_getpid,
-[SYS_sbrk]    sys_sbrk,
-[SYS_sleep]   sys_sleep,
-[SYS_uptime]  sys_uptime,
-[SYS_open]    sys_open,
-[SYS_write]   sys_write,
-[SYS_mknod]   sys_mknod,
-[SYS_unlink]  sys_unlink,
-[SYS_link]    sys_link,
-[SYS_mkdir]   sys_mkdir,
-[SYS_close]   sys_close,
-[SYS_halt]   sys_halt,
-[SYS_toggle]  sys_toggle,
-[SYS_print_count] sys_print_count,
-[SYS_add]     sys_add,
-[SYS_ps]      sys_ps,
-[SYS_send] sys_send,
-[SYS_recv] sys_recv,
-[SYS_registerhandler] sys_registerhandler,
-[SYS_send_multi] sys_send_multi,
-[SYS_recvmulti] sys_recvmulti,
-[SYS_samplecall] sys_samplecall,
-[SYS_create_container] sys_create_container,
-[SYS_join_container] sys_join_container,
-[SYS_scheduler_call] sys_scheduler_call,
-[SYS_leave_container] sys_leave_container,
+[SYS_fork]              sys_fork,
+[SYS_exit]              sys_exit,
+[SYS_wait]              sys_wait,
+[SYS_pipe]              sys_pipe,
+[SYS_read]              sys_read,
+[SYS_kill]              sys_kill,
+[SYS_exec]              sys_exec,
+[SYS_fstat]             sys_fstat,
+[SYS_chdir]             sys_chdir,
+[SYS_dup]               sys_dup,
+[SYS_getpid]            sys_getpid,
+[SYS_sbrk]              sys_sbrk,
+[SYS_sleep]             sys_sleep,
+[SYS_uptime]            sys_uptime,
+[SYS_open]              sys_open,
+[SYS_write]             sys_write,
+[SYS_mknod]             sys_mknod,
+[SYS_unlink]            sys_unlink,
+[SYS_link]              sys_link,
+[SYS_mkdir]             sys_mkdir,
+[SYS_close]             sys_close,
+[SYS_halt]              sys_halt,
+[SYS_toggle]            sys_toggle,
+[SYS_print_count]       sys_print_count,
+[SYS_add]               sys_add,
+[SYS_ps]                sys_ps,
+[SYS_send]              sys_send,
+[SYS_recv]              sys_recv,
+[SYS_registerhandler]   sys_registerhandler,
+[SYS_send_multi]        sys_send_multi,
+[SYS_recvmulti]         sys_recvmulti,
+[SYS_samplecall]        sys_samplecall,
+[SYS_create_container]  sys_create_container,
+[SYS_join_container]    sys_join_container,
+[SYS_scheduler_call]    sys_scheduler_call,
+[SYS_leave_container]   sys_leave_container,
 [SYS_destroy_container] sys_destroy_container,
-[SYS_registerState] sys_registerState,
-[SYS_registerSysCall] sys_registerSysCall,
-[SYS_getStatusSysCall] sys_getStatusSysCall,
+[SYS_registerState]     sys_registerState,
+[SYS_registerSysCall]   sys_registerSysCall,
+[SYS_getStatusSysCall]  sys_getStatusSysCall,
+[SYS_pop_args]          sys_pop_args,
+[SYS_getcid]            sys_getcid,
 };
 
 const char *syscallstr[NELEM(syscalls)]= {
@@ -190,9 +196,9 @@ const char *syscallstr[NELEM(syscalls)]= {
   "sys_link",
   "sys_mkdir",
   "sys_close",
- "sys_halt",
+  "sys_halt",
   "sys_toggle",
- "sys_print_count",
+  "sys_print_count",
   "sys_add",
   "sys_ps",
   "sys_send",
@@ -237,6 +243,15 @@ void printcounthelper(){
 }
 // togglestate=0;
 
+int call_container(int num){
+  struct proc *curproc = myproc();
+
+  num = curproc->tf->eax;
+  // cprintf("Function getting called with sysnum: %d\n", num);
+  curproc->tf->eax = syscalls[num]();
+  return 0;
+}
+
 void
 syscall(void)
 {
@@ -250,6 +265,9 @@ syscall(void)
     if(togglestate==1){
       syscallctr[num-1] = syscallctr[num-1]+1;
     }
+    // if (num == 15 || num == 16 || num == 21)
+    //   curproc->tf->eax = call_container(num);
+    // else
     curproc->tf->eax = syscalls[num]();
   } else {
     cprintf("%d %s: unknown sys call %d\n",
