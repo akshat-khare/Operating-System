@@ -44,6 +44,12 @@ sys_getpid(void)
 }
 
 int
+sys_getcid(void)
+{
+  return myproc()->containerindex;
+}
+
+int
 sys_sbrk(void)
 {
   // cprintf("sbrk called\n");

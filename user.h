@@ -52,7 +52,6 @@ int readmalloc_sys(int *);
 int readvalmalloc_sys(int *);
 int toggle_log(int *);
 
-
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);
