@@ -353,7 +353,9 @@ void schedulercustom(int cid){
                 // do nothing maybe
             }else if(numprocess==1){
                 if(processstate[0]==2 || sleepschedule[0]==1){
-                  printf(1, "Container %d : Scheduling %d\n",cid,0);
+                    if(togglelog==1){
+                        printf(1, "Container %d : Scheduling %d\n",cid,0);
+                    }
                     sleepschedule[0]=0;
                 }
             }else{
@@ -523,21 +525,8 @@ int main(void){
         }
         sleep(20);
         
-        for(;;){
-            // printf(1,"$1_1$\n");
-            // count++;
-            // if(count%500==0){
-            //   //printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //       //printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
+        leave_container();
+        exit();
     }
     
     pid = fork();
@@ -557,29 +546,9 @@ int main(void){
         }
         getfd(&fd);
         sleep(200);
-        for(;;){
-            // printf(1,"$1_2$\n");
-            // count++;
-            // if(count>2000){
-            //     leave_container();
-            //     destroy_container(1);
-            //     ps();
-            //     sleep(200);
-            //     ps();
-            //     exit();
-            // }
-            // if(count%500==0){
-            //   //printf(1, "doing sys\n");
-            // registerSysCall(1);
-            // int waittemp = -1;
-            // while(waittemp==-1){
-            //   //printf(1,".");
-            //     waittemp=getStatusSysCall();
-            // }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
+        leave_container();
+        exit();
+
     }
     pid = fork();
     if(pid==0){
@@ -597,21 +566,9 @@ int main(void){
         }
         getfd(&fd);
         sleep(200);
-        for(;;){
-            // printf(1,"$1_3$\n");
-            // count++;
-            // if(count%500==0){
-            //   //printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //       //printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
+        leave_container();
+        exit();
+
     }
     pid = fork();
     if(pid==0){
@@ -679,23 +636,9 @@ int main(void){
             waittemp=getStatusSysCall();
         }
         sleep(20);
+        leave_container();
+        exit();
 
-        // int count =0;
-        for(;;){
-            // printf(1,"$2_1$\n");
-            // count++;
-            // if(count%500==0){
-            //   //printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //       //printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
     }
     pid = fork();
     if(pid==0){
@@ -763,22 +706,10 @@ int main(void){
             waittemp=getStatusSysCall();
         }
         sleep(20);
+        leave_container();
+        exit();
 
-        for(;;){
-            // printf(1,"$3_1$\n");
-            // count++;
-            // if(count%500==0){
-            //   //printf(1, "doing sys\n");
-            //     registerSysCall(1);
-            //     int waittemp = -1;
-            //     while(waittemp==-1){
-            //       //printf(1,".");
-            //         waittemp=getStatusSysCall();
-            //     }
-            // //     leave_container();
-            // //     exit();
-            // }
-        }
+
     }
     sleep(20);
     int tmplog=1;
@@ -786,9 +717,10 @@ int main(void){
     sleep(200);
     tmplog=0;
     toggle_log(&tmplog);
-    for(;;){
-
-    }
+    sleep(2000);
+    destroy_container(1);
+    destroy_container(2);
+    destroy_container(3);
     // sleep(1000);
     exit();
 

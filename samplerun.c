@@ -157,7 +157,6 @@ int main(int argc, char *argv[]){
     int fd = open("lol",O_CREATE | O_RDWR);
     // char * lolstr = (char *)malloc(sizeof(char)*30);
     char lolstr[30];
-    strcpy(lolstr, "fuck you\0");
     // printf(1, "writing %s\n", lolstr);
     write(fd, &lolstr, sizeof(char)*30);
     close(fd);
